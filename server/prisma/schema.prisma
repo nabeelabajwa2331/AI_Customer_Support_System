@@ -1,0 +1,57 @@
+// Prisma schema for the AI Customer Support System (Milestone 3).
+// Docs: https://pris.ly/d/prisma-schema
+
+// Prisma 6 stable. Uses the classic client (generates into node_modules and
+// is imported from "@prisma/client"), which plays nicely with ESM + tsx + tsc.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Application roles. Public registration is always limited to CUSTOMER;
+/// the other roles are reserved for staff created through trusted channels.
+enum Role {
+  CUSTOMER
+  SUPPORT_AGENT
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(120)
+  /// Stored already normalized (trimmed + lower-cased) so the unique
+  /// constraint enforces case-insensitive uniqueness.
+  email        String   @unique @db.VarChar(255)
+  /// Only ever a bcrypt hash. Plaintext passwords are never persisted.
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         Role     @default(CUSTOMER)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  refreshTokens RefreshToken[]
+
+  @@index([role])
+  @@map("users")
+}
+
+/// A refresh token is an opaque random string. Only its SHA-256 hash is
+/// stored, so a database leak cannot be replayed as a valid token.
+/// Revoking (setting `revokedAt`) is how logout rotates/invalidates a session.
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash") @db.Char(64)
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}

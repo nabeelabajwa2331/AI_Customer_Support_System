@@ -1,0 +1,44 @@
+# ---- Dependencies ----
+node_modules/
+.pnpm-store/
+
+# ---- Environment / Secrets (never commit real values) ----
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ---- Build output ----
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# ---- Logs ----
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---- Editor / OS ----
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---- Prisma ----
+prisma/*.db
+prisma/*.db-journal
+
+# ---- Test / Coverage ----
+coverage/
+.nyc_output/
+
+# ---- Python (utility scripts) ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
