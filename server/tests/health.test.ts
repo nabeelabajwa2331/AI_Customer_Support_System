@@ -21,6 +21,6 @@ describe('GET /api/health', () => {
     const res = await request(app).get('/api/definitely-not-a-route');
 
     expect(res.status).toBe(404);
-    expect(res.body).toEqual({ success: false, message: 'Not found' });
+    expect(res.body).toEqual({ success: false, code: 'NOT_FOUND', message: 'Not found' });
   });
 });

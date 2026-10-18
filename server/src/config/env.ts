@@ -1,11 +1,6 @@
 import { z } from 'zod';
 
-/**
- * Environment configuration, validated at startup.
- *
- * A single place reads `process.env`, so the rest of the code can rely on
- * strongly-typed, already-validated values (and we fail fast on misconfig).
- */
+// Validated at startup so the rest of the code can rely on typed values.
 const envSchema = z.object({
   NODE_ENV: z.string().trim().default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(5000),
@@ -13,12 +8,10 @@ const envSchema = z.object({
   // PostgreSQL connection string used by Prisma.
   DATABASE_URL: z.string().trim().min(1, 'DATABASE_URL is required'),
 
-  // Secret used to sign JWT access tokens. Must be long enough to resist
-  // brute force; generate with `crypto.randomBytes(48).toString('base64url')`.
+  // JWT signing secret (>=32 chars).
   AUTH_SECRET: z.string().min(32, 'AUTH_SECRET must be at least 32 characters'),
 
-  // Access token lifetime (short-lived). Refresh tokens live longer and are
-  // stored server-side so they can be revoked.
+  // Short-lived access token; refresh tokens are stored server-side and revocable.
   JWT_EXPIRES_IN: z.string().trim().default('15m'),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(90).default(7),
 

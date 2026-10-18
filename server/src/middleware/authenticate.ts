@@ -1,19 +1,13 @@
 import type { RequestHandler } from 'express';
 
+import type { AccessTokenClaims } from '../lib/jwt.js';
 import { verifyAccessToken } from '../lib/jwt.js';
 import { unauthorized } from '../lib/errors.js';
 import { prisma } from '../lib/prisma.js';
 
-/**
- * Authentication middleware.
- *
- * Expects `Authorization: Bearer <jwt>`. The token signature/expiry is
- * verified, then the user is loaded from the database so that role changes or
- * deletions take effect immediately (rather than being trusted from the token).
- *
- * Express 5 forwards rejected promises to the error handler automatically, so
- * throwing here is safe.
- */
+// Verifies `Authorization: Bearer <jwt>` and loads the user from the database so
+// role changes and deletions take effect immediately. Express 5 forwards thrown
+// errors to the error handler.
 export const authenticate: RequestHandler = async (req, _res, next) => {
   const header = req.headers.authorization;
 
@@ -23,7 +17,7 @@ export const authenticate: RequestHandler = async (req, _res, next) => {
 
   const token = header.slice('Bearer '.length).trim();
 
-  let claims;
+  let claims: AccessTokenClaims;
   try {
     claims = await verifyAccessToken(token);
   } catch {

@@ -1,11 +1,6 @@
 import { z } from 'zod';
 
-/**
- * Email schema: trims, validates a basic shape, then lower-cases the value so
- * that storage and the uniqueness check are effectively case-insensitive.
- * (A stricter, deliverability-aware check belongs in email verification, which
- * is out of scope for this milestone.)
- */
+// Trims, validates a basic shape, and lower-cases so uniqueness is case-insensitive.
 const emailSchema = z
   .string()
   .trim()

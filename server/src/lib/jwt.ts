@@ -12,7 +12,6 @@ export interface AccessTokenClaims {
 const algorithm = 'HS256';
 const secret = new TextEncoder().encode(config.authSecret);
 
-/** Sign a short-lived JWT access token. */
 export function signAccessToken(claims: AccessTokenClaims): Promise<string> {
   return new SignJWT({ email: claims.email, role: claims.role })
     .setProtectedHeader({ alg: algorithm })
@@ -22,15 +21,16 @@ export function signAccessToken(claims: AccessTokenClaims): Promise<string> {
     .sign(secret);
 }
 
-/**
- * Verify an access token's signature and expiry.
- * Throws if the token is invalid, tampered with, or expired.
- */
+// Throws if the token is invalid, tampered with, or expired.
 export async function verifyAccessToken(token: string): Promise<AccessTokenClaims> {
   // Pin the accepted algorithm to prevent algorithm-confusion attacks.
   const { payload } = await jwtVerify(token, secret, { algorithms: [algorithm] });
 
-  if (typeof payload.sub !== 'string' || typeof payload.email !== 'string' || typeof payload.role !== 'string') {
+  if (
+    typeof payload.sub !== 'string' ||
+    typeof payload.email !== 'string' ||
+    typeof payload.role !== 'string'
+  ) {
     throw new Error('Malformed token payload');
   }
 

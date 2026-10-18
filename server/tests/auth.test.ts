@@ -119,7 +119,9 @@ describe('GET /api/auth/me (protected)', () => {
     await register();
     const { body } = await login('ada@example.com', VALID.password);
 
-    const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${body.accessToken}`);
+    const res = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${body.accessToken}`);
 
     expect(res.status).toBe(200);
     expect(res.body.user.email).toBe('ada@example.com');
@@ -138,7 +140,9 @@ describe('role-based authorization', () => {
     await register();
     const { body } = await login('ada@example.com', VALID.password);
 
-    const res = await request(app).get('/api/admin/ping').set('Authorization', `Bearer ${body.accessToken}`);
+    const res = await request(app)
+      .get('/api/admin/ping')
+      .set('Authorization', `Bearer ${body.accessToken}`);
     expect(res.status).toBe(403);
   });
 
@@ -174,10 +178,14 @@ describe('refresh and logout', () => {
     await register();
     const { body } = await login('ada@example.com', VALID.password);
 
-    const logout = await request(app).post('/api/auth/logout').send({ refreshToken: body.refreshToken });
+    const logout = await request(app)
+      .post('/api/auth/logout')
+      .send({ refreshToken: body.refreshToken });
     expect(logout.status).toBe(200);
 
-    const afterLogout = await request(app).post('/api/auth/refresh').send({ refreshToken: body.refreshToken });
+    const afterLogout = await request(app)
+      .post('/api/auth/refresh')
+      .send({ refreshToken: body.refreshToken });
     expect(afterLogout.status).toBe(401);
   });
 });

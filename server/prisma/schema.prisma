@@ -1,8 +1,3 @@
-// Prisma schema for the AI Customer Support System (Milestone 3).
-// Docs: https://pris.ly/d/prisma-schema
-
-// Prisma 6 stable. Uses the classic client (generates into node_modules and
-// is imported from "@prisma/client"), which plays nicely with ESM + tsx + tsc.
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,35 +7,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// Application roles. Public registration is always limited to CUSTOMER;
-/// the other roles are reserved for staff created through trusted channels.
+// Roles: public registration is always CUSTOMER.
 enum Role {
   CUSTOMER
   SUPPORT_AGENT
   ADMIN
 }
 
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
 model User {
   id           String   @id @default(uuid()) @db.Uuid
   name         String   @db.VarChar(120)
-  /// Stored already normalized (trimmed + lower-cased) so the unique
-  /// constraint enforces case-insensitive uniqueness.
+  // Stored normalized (trimmed + lower-cased) for case-insensitive uniqueness.
   email        String   @unique @db.VarChar(255)
-  /// Only ever a bcrypt hash. Plaintext passwords are never persisted.
+  // Only ever a bcrypt hash.
   passwordHash String   @map("password_hash") @db.VarChar(255)
   role         Role     @default(CUSTOMER)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  refreshTokens RefreshToken[]
+  refreshTokens      RefreshToken[]
+  knowledgeDocuments KnowledgeDocument[]
 
   @@index([role])
   @@map("users")
 }
 
-/// A refresh token is an opaque random string. Only its SHA-256 hash is
-/// stored, so a database leak cannot be replayed as a valid token.
-/// Revoking (setting `revokedAt`) is how logout rotates/invalidates a session.
+// Opaque random token; only its SHA-256 hash is stored.
 model RefreshToken {
   id        String    @id @default(uuid()) @db.Uuid
   userId    String    @map("user_id") @db.Uuid
@@ -54,4 +53,40 @@ model RefreshToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("refresh_tokens")
+}
+
+model KnowledgeDocument {
+  id          String         @id @default(uuid()) @db.Uuid
+  title       String         @db.VarChar(300)
+  source      String?        @db.VarChar(1024)
+  sourceType  String?        @map("source_type") @db.VarChar(40)
+  mimeType    String?        @map("mime_type") @db.VarChar(120)
+  checksum    String?        @unique @db.Char(64)
+  status      DocumentStatus @default(PENDING)
+  metadata    Json?
+  createdById String?        @map("created_by_id") @db.Uuid
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  createdBy User?           @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  chunks    DocumentChunk[]
+
+  @@index([status])
+  @@map("knowledge_documents")
+}
+
+model DocumentChunk {
+  id         String   @id @default(uuid()) @db.Uuid
+  documentId String   @map("document_id") @db.Uuid
+  chunkIndex Int      @map("chunk_index")
+  content    String   @db.Text
+  tokenCount Int?     @map("token_count")
+  metadata   Json?
+  embedding  Unsupported("vector(1536)")?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  document KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, chunkIndex])
+  @@map("document_chunks")
 }

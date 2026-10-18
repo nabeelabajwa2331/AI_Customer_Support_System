@@ -1,6 +1,4 @@
-// Load server/.env into process.env before anything reads configuration.
-// (Prisma does not load .env at runtime for the app; this keeps local
-// development working without exporting variables manually.)
+// Load server/.env before anything reads configuration.
 import 'dotenv/config';
 
 import { createApp } from './app.js';
@@ -14,7 +12,6 @@ const server = app.listen(config.port, () => {
   );
 });
 
-/** Gracefully stop accepting connections and exit. */
 function shutdown(signal: NodeJS.Signals): void {
   console.log(`[server] Received ${signal}. Shutting down...`);
   server.close((error) => {

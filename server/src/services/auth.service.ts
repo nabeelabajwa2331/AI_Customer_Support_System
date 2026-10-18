@@ -41,18 +41,15 @@ function refreshTokenExpiry(): Date {
   return new Date(Date.now() + config.refreshTokenTtlDays * 24 * 60 * 60 * 1000);
 }
 
-// Lazily-computed bcrypt hash used only to equalize login timing for unknown
-// emails. It is never a valid password for any account.
+// Dummy bcrypt hash used to equalize login timing for unknown emails.
 let dummyHashPromise: Promise<string> | undefined;
 function getDummyHash(): Promise<string> {
   dummyHashPromise ??= hashPassword('not-a-real-password-value');
   return dummyHashPromise;
 }
 
-/**
- * Issue a new access token and a new refresh token. When rotating, the
- * previous refresh token row is revoked in the same transaction.
- */
+// Issues a fresh access + refresh token; when rotating, revokes the old row in
+// the same transaction.
 async function issueTokens(user: User, rotateFromTokenId?: string): Promise<AuthTokens> {
   const accessToken = await signAccessToken({ sub: user.id, email: user.email, role: user.role });
   const refreshToken = generateOpaqueToken();
@@ -97,8 +94,7 @@ export async function register(input: RegisterInput): Promise<PublicUser> {
       name: input.name,
       email: input.email,
       passwordHash: await hashPassword(input.password),
-      // Public registration is hard-limited to CUSTOMER. Privileged roles are
-      // assigned only through trusted, out-of-band processes.
+      // Public registration is always CUSTOMER; privileged roles are trusted-only.
       role: 'CUSTOMER',
     },
   });
@@ -109,8 +105,7 @@ export async function register(input: RegisterInput): Promise<PublicUser> {
 export async function login(input: LoginInput): Promise<AuthTokens> {
   const user = await prisma.user.findUnique({ where: { email: input.email } });
 
-  // Always run a bcrypt comparison so response timing does not reveal whether
-  // the email exists.
+  // Always compare so timing does not reveal whether the email exists.
   const passwordHash = user?.passwordHash ?? (await getDummyHash());
   const passwordValid = await verifyPassword(input.password, passwordHash);
 
@@ -132,8 +127,7 @@ export async function refresh(rawToken: string): Promise<AuthTokens> {
   }
 
   if (record.revokedAt) {
-    // A revoked token presented again can indicate replay/theft. Revoke every
-    // active token for this user as a precaution.
+    // A reused revoked token can mean theft, so revoke all of the user's tokens.
     await prisma.refreshToken.updateMany({
       where: { userId: record.userId, revokedAt: null },
       data: { revokedAt: new Date() },

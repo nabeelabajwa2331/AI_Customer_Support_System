@@ -2,13 +2,7 @@ import bcrypt from 'bcryptjs';
 
 import { config } from '../config/env.js';
 
-/**
- * Hash a plaintext password with bcrypt.
- *
- * bcrypt embeds a random salt in the output and is intentionally slow, which
- * makes offline brute-force attacks costly. We use a cost factor from config
- * (default 12).
- */
+// bcrypt embeds a random salt and is intentionally slow (cost from config).
 export function hashPassword(plaintext: string): Promise<string> {
   return bcrypt.hash(plaintext, config.bcryptRounds);
 }
