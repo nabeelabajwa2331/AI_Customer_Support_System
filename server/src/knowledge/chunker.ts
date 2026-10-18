@@ -1,5 +1,5 @@
 
-import { encode } from "gpt-tokenizer";
+import { encode, decode } from "gpt-tokenizer";
 import type {
   ChunkingOptions,
   TextChunk,
@@ -33,40 +33,21 @@ export function chunkText(
     throw new Error("overlap must be smaller than chunkSize.");
   }
 
-  const words = normalizedText.split(/\s+/);
+  const tokens = encode(normalizedText);
   const chunks: TextChunk[] = [];
-  let start = 0;
+  const step = chunkSize - overlap;
 
-  while (start < words.length) {
-    let end = start;
-    let content = "";
-
-    // Build a chunk without exceeding the token budget.
-    while (end < words.length) {
-      const candidate = [...words.slice(start, end + 1)].join(" ");
-
-      if (encode(candidate).length > chunkSize) break;
-
-      content = candidate;
-      end++;
-    }
-
-    if (!content) {
-      throw new Error(
-        "A word exceeds the chunk token limit; handle this text separately.",
-      );
-    }
+  for (let start = 0; start < tokens.length; start += step) {
+    const chunkTokens = tokens.slice(start, start + chunkSize);
+    const content = decode(chunkTokens);
 
     chunks.push({
       content,
       chunkIndex: chunks.length,
-      tokenCount: encode(content).length,
+      tokenCount: chunkTokens.length,
     });
 
-    if (end >= words.length) break;
-
-    // Preserve overlap, measured approximately in words.
-    start = Math.max(start + 1, end - overlap);
+    if (start + chunkSize >= tokens.length) break;
   }
 
   return chunks;
