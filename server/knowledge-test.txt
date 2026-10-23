@@ -1,0 +1,5 @@
+﻿AI Customer Support System
+
+Customers can ask questions about products, orders, refunds, and shipping.
+Refund requests must follow the company's refund policy.
+If a question cannot be answered from the available knowledge base, escalate it to a human support agent.

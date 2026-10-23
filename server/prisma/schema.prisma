@@ -82,7 +82,7 @@ model DocumentChunk {
   content    String   @db.Text
   tokenCount Int?     @map("token_count")
   metadata   Json?
-  embedding  Unsupported("vector(1536)")?
+  embedding  Unsupported("vector(768)")?
   createdAt  DateTime @default(now()) @map("created_at")
 
   document KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)

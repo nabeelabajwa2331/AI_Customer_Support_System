@@ -12,25 +12,31 @@ export interface ExtractedDocument {
 
 export async function extractDocumentText(
   filePath: string,
+  originalFileName?: string,
 ): Promise<ExtractedDocument> {
-  const extension = path.extname(filePath).toLowerCase();
-  const fileName = path.basename(filePath);
+  // Multer's temporary filename has no extension, so prefer
+  // the original uploaded filename when determining file type.
+  const fileName = originalFileName
+    ? path.basename(originalFileName)
+    : path.basename(filePath);
+
+  const extension = path.extname(fileName).toLowerCase();
 
   let text: string;
   let mimeType: string;
 
   if (extension === ".pdf") {
     const buffer = await readFile(filePath);
-const parser = new PDFParse({ data: buffer });
+    const parser = new PDFParse({ data: buffer });
 
-try {
-  const result = await parser.getText();
-  text = result.text;
-} finally {
-  await parser.destroy();
-}
+    try {
+      const result = await parser.getText();
+      text = result.text;
+    } finally {
+      await parser.destroy();
+    }
 
-mimeType = "application/pdf";
+    mimeType = "application/pdf";
   } else if (extension === ".docx") {
     const buffer = await readFile(filePath);
     const result = await mammoth.extractRawText({ buffer });
@@ -49,9 +55,7 @@ mimeType = "application/pdf";
   text = text.trim();
 
   if (!text) {
-    throw new Error(
-      "No readable text was found in the document.",
-    );
+    throw new Error("No readable text was found in the document.");
   }
 
   return { text, mimeType, fileName };
