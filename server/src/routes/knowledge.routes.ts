@@ -5,8 +5,11 @@ import path from 'node:path';
 
 import { authenticate } from '../middleware/authenticate.js';
 import { authorize } from '../middleware/authorize.js';
+import { validateBody } from '../middleware/validate.js';
 import { ingestDocument } from '../knowledge/ingestion.js';
 import { saveKnowledgeDocument } from '../knowledge/knowledge.repository.js';
+import { retrieveKnowledge } from '../knowledge/retrieval.js';
+import { searchKnowledgeSchema, type SearchKnowledgeInput } from '../schemas/knowledge.schemas.js';
 
 export const knowledgeRouter = Router();
 
@@ -31,6 +34,19 @@ const upload = multer({
     callback(null, true);
   },
 });
+
+// The knowledge base is global, so every authenticated role may search it.
+knowledgeRouter.post(
+  '/search',
+  authenticate,
+  validateBody(searchKnowledgeSchema),
+  async (req, res) => {
+    const { query, topK } = req.body as SearchKnowledgeInput;
+    const results = await retrieveKnowledge(query, topK === undefined ? {} : { topK });
+
+    res.status(200).json({ success: true, results });
+  },
+);
 
 knowledgeRouter.post('/upload', authenticate, authorize('ADMIN'), async (req, res, next) => {
   try {
