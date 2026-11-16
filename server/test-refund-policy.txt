@@ -1,0 +1,11 @@
+﻿TEST KNOWLEDGE BASE DOCUMENT
+
+Topic: Refund Policy
+
+Our test store allows customers to request a refund within 14 calendar days of purchase.
+
+Customers must provide their order number when requesting a refund.
+
+Approved refunds are processed within 5 business days.
+
+This document is for local integration testing only.

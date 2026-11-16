@@ -4,9 +4,13 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: [
+      'tests/chat.routes.test.ts',
+      'tests/chat.service.test.ts',
       'tests/chunker.test.ts',
       'tests/document-extractor.test.ts',
       'tests/embedding.validation.test.ts',
+      'tests/env-chat-min-similarity.test.ts',
+      'tests/env-port.test.ts',
       'tests/ingestion.test.ts',
       'tests/knowledge.repository.validation.test.ts',
       'tests/knowledge.search.test.ts',

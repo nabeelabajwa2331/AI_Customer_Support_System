@@ -3,7 +3,8 @@ import { z } from 'zod';
 // Validated at startup so the rest of the code can rely on typed values.
 const envSchema = z.object({
   NODE_ENV: z.string().trim().default('development'),
-  PORT: z.coerce.number().int().min(1).max(65535).default(5000),
+  // Port 5001 avoids a common local conflict with other apps using 5000.
+  PORT: z.coerce.number().int().min(1).max(65535).default(5001),
 
   // PostgreSQL connection string used by Prisma.
   DATABASE_URL: z.string().trim().min(1, 'DATABASE_URL is required'),
@@ -35,6 +36,20 @@ const envSchema = z.object({
       message: 'EMBEDDING_DIMENSIONS must be 768 for embeddinggemma.',
     }),
   OLLAMA_TIMEOUT_MS: z.coerce.number().int().min(1).max(300_000).default(30_000),
+
+  // Minimum retrieval similarity (1 - cosine distance) a chunk needs before the
+  // chat layer sends it to the model. Provisional value from a small evaluation;
+  // it filters clearly off-topic questions but does not prove answerability.
+  // An empty value falls back to the default instead of coercing to 0, which
+  // would silently disable the gate.
+  CHAT_MIN_SIMILARITY: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.coerce
+      .number()
+      .min(0, 'CHAT_MIN_SIMILARITY must be between 0 and 1')
+      .max(1, 'CHAT_MIN_SIMILARITY must be between 0 and 1')
+      .default(0.4),
+  ),
 
   // JWT signing secret (>=32 chars).
   AUTH_SECRET: z.string().min(32, 'AUTH_SECRET must be at least 32 characters'),
@@ -70,6 +85,7 @@ export interface AppConfig {
   readonly ollamaEmbeddingModel: string;
   readonly embeddingDimensions: number;
   readonly ollamaTimeoutMs: number;
+  readonly chatMinSimilarity: number;
   readonly authSecret: string;
   readonly jwtExpiresIn: string;
   readonly refreshTokenTtlDays: number;
@@ -87,6 +103,7 @@ export const config: AppConfig = Object.freeze({
   ollamaEmbeddingModel: env.OLLAMA_EMBEDDING_MODEL,
   embeddingDimensions: env.EMBEDDING_DIMENSIONS,
   ollamaTimeoutMs: env.OLLAMA_TIMEOUT_MS,
+  chatMinSimilarity: env.CHAT_MIN_SIMILARITY,
   authSecret: env.AUTH_SECRET,
   jwtExpiresIn: env.JWT_EXPIRES_IN,
   refreshTokenTtlDays: env.REFRESH_TOKEN_TTL_DAYS,

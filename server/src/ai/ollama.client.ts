@@ -11,8 +11,23 @@ export interface OllamaEmbeddingOptions {
   dimensions: number;
 }
 
+export type OllamaChatRole = 'system' | 'user' | 'assistant';
+
+export interface OllamaChatMessage {
+  role: OllamaChatRole;
+  content: string;
+}
+
+export interface OllamaChatOptions {
+  model: string;
+  messages: OllamaChatMessage[];
+  /** Sampling temperature (0 = most deterministic). Omitted means the model default. */
+  temperature?: number;
+}
+
 export interface OllamaClient {
   embed(text: string, options: OllamaEmbeddingOptions): Promise<number[]>;
+  chat(options: OllamaChatOptions): Promise<string>;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -147,6 +162,120 @@ export function createOllamaClient({
       }
 
       return embedding;
+    },
+
+    async chat(options) {
+      if (!options || typeof options !== 'object') {
+        throw new Error('Ollama chat options are required.');
+      }
+
+      if (typeof options.model !== 'string' || !options.model.trim()) {
+        throw new Error('An Ollama chat model is required.');
+      }
+
+      if (!Array.isArray(options.messages) || options.messages.length === 0) {
+        throw new Error('At least one chat message is required.');
+      }
+
+      const messages: OllamaChatMessage[] = options.messages.map((message, index) => {
+        if (!isRecord(message)) {
+          throw new Error(`Chat message at index ${index} must be an object.`);
+        }
+
+        if (message.role !== 'system' && message.role !== 'user' && message.role !== 'assistant') {
+          throw new Error(`Chat message at index ${index} has an invalid role.`);
+        }
+
+        if (typeof message.content !== 'string' || message.content.trim().length === 0) {
+          throw new Error(`Chat message at index ${index} must have non-empty content.`);
+        }
+
+        return { role: message.role, content: message.content };
+      });
+
+      if (
+        options.temperature !== undefined &&
+        (typeof options.temperature !== 'number' ||
+          !Number.isFinite(options.temperature) ||
+          options.temperature < 0)
+      ) {
+        throw new Error('Chat temperature must be a non-negative finite number.');
+      }
+
+      const normalizedModel = options.model.trim();
+      const timeoutMessage = `Ollama did not respond within ${timeoutMs}ms at ${normalizedBaseUrl}. Is the server running?`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+      try {
+        let response: Response;
+
+        try {
+          response = await fetch(`${normalizedBaseUrl}/api/chat`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            body: JSON.stringify({
+              model: normalizedModel,
+              messages,
+              stream: false,
+              ...(options.temperature === undefined
+                ? {}
+                : { options: { temperature: options.temperature } }),
+            }),
+            signal: controller.signal,
+          });
+        } catch (error) {
+          if (controller.signal.aborted) {
+            throw new Error(timeoutMessage);
+          }
+
+          const detail = error instanceof Error ? error.message : 'Unknown network error';
+          throw new Error(
+            `Could not reach Ollama at ${normalizedBaseUrl}: ${detail}. Is the server running?`,
+          );
+        }
+
+        if (!response.ok) {
+          const body = await readErrorBody(response);
+
+          if (controller.signal.aborted) {
+            throw new Error(timeoutMessage);
+          }
+
+          const status = `HTTP ${response.status}${
+            response.statusText ? ` ${response.statusText}` : ''
+          }`;
+
+          throw new Error(`Ollama chat request failed with ${status}${body}`);
+        }
+
+        let payload: unknown;
+
+        try {
+          payload = await response.json();
+        } catch {
+          if (controller.signal.aborted) {
+            throw new Error(timeoutMessage);
+          }
+
+          throw new Error('Ollama returned an invalid JSON response.');
+        }
+
+        if (
+          !isRecord(payload) ||
+          !isRecord(payload.message) ||
+          typeof payload.message.content !== 'string'
+        ) {
+          throw new Error('Ollama returned no chat message content.');
+        }
+
+        return payload.message.content;
+      } finally {
+        clearTimeout(timeout);
+      }
     },
   };
 }
