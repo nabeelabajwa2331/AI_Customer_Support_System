@@ -4,6 +4,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
 import { Alert } from '../components/Feedback';
+import { GoogleSignIn } from '../components/GoogleSignIn';
 import { Spinner } from '../components/Spinner';
 import { ApiError, api } from '../lib/api';
 import { AuthShell } from './LoginPage';
@@ -19,7 +20,7 @@ function validate(name: string, email: string, password: string): Record<string,
 }
 
 export function RegisterPage() {
-  const { user } = useAuth();
+  const { user, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -29,6 +30,20 @@ export function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
 
   if (user) return <Navigate to="/" replace />;
+
+  // Google sign-up creates a CUSTOMER account and signs in immediately.
+  async function handleGoogle(credential: string) {
+    setError(null);
+    setSubmitting(true);
+    try {
+      await signInWithGoogle(credential);
+      navigate('/', { replace: true });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Google sign-up failed. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -106,6 +121,8 @@ export function RegisterPage() {
           {submitting ? <Spinner size="sm" /> : null}
           {submitting ? 'Creating account' : 'Create account'}
         </button>
+
+        <GoogleSignIn text="signup_with" onCredential={(c) => void handleGoogle(c)} onError={setError} />
 
         <p className="auth-switch">
           Already have an account? <Link to="/login">Sign in</Link>

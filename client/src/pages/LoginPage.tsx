@@ -5,8 +5,10 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { STAFF_ROLES, useAuth } from '../auth/AuthContext';
 import { Alert } from '../components/Feedback';
+import { GoogleSignIn } from '../components/GoogleSignIn';
 import { Spinner } from '../components/Spinner';
 import { ApiError } from '../lib/api';
+import type { User } from '../types/api';
 
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
@@ -36,7 +38,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
 }
 
 export function LoginPage() {
-  const { user, signIn } = useAuth();
+  const { user, signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState('');
@@ -49,15 +51,30 @@ export function LoginPage() {
 
   if (user) return <Navigate to="/" replace />;
 
+  function goHome(signedIn: User) {
+    const home = STAFF_ROLES.includes(signedIn.role) ? '/overview' : '/assistant';
+    navigate(from && from !== '/login' ? from : home, { replace: true });
+  }
+
+  async function handleGoogle(credential: string) {
+    setError(null);
+    setSubmitting(true);
+    try {
+      goHome(await signInWithGoogle(credential));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Google sign-in failed. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
 
     try {
-      const signedIn = await signIn(email.trim(), password);
-      const home = STAFF_ROLES.includes(signedIn.role) ? '/overview' : '/assistant';
-      navigate(from && from !== '/login' ? from : home, { replace: true });
+      goHome(await signIn(email.trim(), password));
     } catch (err) {
       setError(
         err instanceof ApiError && err.status === 401
@@ -106,6 +123,8 @@ export function LoginPage() {
           {submitting ? <Spinner size="sm" /> : null}
           {submitting ? 'Signing in' : 'Sign in'}
         </button>
+
+        <GoogleSignIn onCredential={(c) => void handleGoogle(c)} onError={setError} />
 
         <p className="auth-switch">
           New customer? <Link to="/register">Create an account</Link>

@@ -58,6 +58,20 @@ const envSchema = z.object({
   CHAT_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).max(10_000).default(10),
   UPLOAD_RATE_LIMIT_PER_HOUR: z.coerce.number().int().min(1).max(10_000).default(20),
 
+  // OAuth client ID for "Continue with Google" (public, not a secret). Unset or
+  // empty disables Google sign-in.
+  GOOGLE_CLIENT_ID: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z
+      .string()
+      .trim()
+      .regex(
+        /\.apps\.googleusercontent\.com$/,
+        'GOOGLE_CLIENT_ID must end with .apps.googleusercontent.com',
+      )
+      .optional(),
+  ),
+
   // JWT signing secret (>=32 chars).
   AUTH_SECRET: z.string().min(32, 'AUTH_SECRET must be at least 32 characters'),
 
@@ -96,6 +110,7 @@ export interface AppConfig {
   readonly chatMinSimilarity: number;
   readonly chatRateLimitPerMinute: number;
   readonly uploadRateLimitPerHour: number;
+  readonly googleClientId: string | null;
   readonly authSecret: string;
   readonly jwtExpiresIn: string;
   readonly refreshTokenTtlDays: number;
@@ -117,6 +132,7 @@ export const config: AppConfig = Object.freeze({
   chatMinSimilarity: env.CHAT_MIN_SIMILARITY,
   chatRateLimitPerMinute: env.CHAT_RATE_LIMIT_PER_MINUTE,
   uploadRateLimitPerHour: env.UPLOAD_RATE_LIMIT_PER_HOUR,
+  googleClientId: env.GOOGLE_CLIENT_ID ?? null,
   authSecret: env.AUTH_SECRET,
   jwtExpiresIn: env.JWT_EXPIRES_IN,
   refreshTokenTtlDays: env.REFRESH_TOKEN_TTL_DAYS,

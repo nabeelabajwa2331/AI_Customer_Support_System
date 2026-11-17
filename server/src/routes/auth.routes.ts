@@ -1,10 +1,15 @@
 import { Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
 
-import { isTest } from '../config/env.js';
+import { config, isTest } from '../config/env.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { validateBody } from '../middleware/validate.js';
-import { loginSchema, refreshSchema, registerSchema } from '../schemas/auth.schemas.js';
+import {
+  googleLoginSchema,
+  loginSchema,
+  refreshSchema,
+  registerSchema,
+} from '../schemas/auth.schemas.js';
 import * as authService from '../services/auth.service.js';
 
 export const authRouter = Router();
@@ -37,6 +42,20 @@ authRouter.post('/refresh', authRateLimiter, validateBody(refreshSchema), async 
 authRouter.post('/logout', authRateLimiter, validateBody(refreshSchema), async (req, res) => {
   await authService.logout(req.body.refreshToken);
   res.status(200).json({ success: true, message: 'Logged out' });
+});
+
+// Public: the frontend needs the (non-secret) client ID to render Google's button.
+authRouter.get('/google/config', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    enabled: config.googleClientId !== null,
+    clientId: config.googleClientId,
+  });
+});
+
+authRouter.post('/google', authRateLimiter, validateBody(googleLoginSchema), async (req, res) => {
+  const tokens = await authService.loginWithGoogle(req.body.credential);
+  res.status(200).json({ success: true, ...tokens });
 });
 
 authRouter.get('/me', authenticate, async (req, res) => {

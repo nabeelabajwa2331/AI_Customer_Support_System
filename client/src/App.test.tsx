@@ -115,6 +115,30 @@ describe('AI assistant', () => {
   });
 });
 
+describe('Continue with Google', () => {
+  it('is hidden when the backend has no Google client ID configured', async () => {
+    mockBackend(null, { '/auth/google/config': { success: true, enabled: false, clientId: null } });
+    renderAt('/login');
+
+    await screen.findByRole('heading', { name: 'Sign in' });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(screen.queryByTestId('google-button')).not.toBeInTheDocument();
+  });
+
+  it('loads Google Identity Services with the configured client ID', async () => {
+    mockBackend(null, {
+      '/auth/google/config': { success: true, enabled: true, clientId: 'abc.apps.googleusercontent.com' },
+    });
+    renderAt('/login');
+
+    expect(await screen.findByTestId('google-button')).toBeInTheDocument();
+    expect(screen.getByText('or')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(document.querySelector('script[src="https://accounts.google.com/gsi/client"]')).not.toBeNull(),
+    );
+  });
+});
+
 describe('registration', () => {
   it('validates fields before calling the API', async () => {
     const fetchMock = mockBackend(null);

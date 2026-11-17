@@ -1,7 +1,8 @@
 import type { User } from '@prisma/client';
 
 import { config } from '../config/env.js';
-import { conflict, unauthorized } from '../lib/errors.js';
+import { AppError, conflict, unauthorized } from '../lib/errors.js';
+import { verifyGoogleIdToken, type GoogleIdentity } from '../lib/google.js';
 import { signAccessToken } from '../lib/jwt.js';
 import { hashPassword, verifyPassword } from '../lib/password.js';
 import { prisma } from '../lib/prisma.js';
@@ -148,6 +149,49 @@ export async function logout(rawToken: string): Promise<void> {
     where: { tokenHash: hashToken(rawToken), revokedAt: null },
     data: { revokedAt: new Date() },
   });
+}
+
+/**
+ * Signs in with a Google ID token. Matches an existing account by verified
+ * email; otherwise creates a CUSTOMER account. Google sign-in never grants a
+ * staff role on its own.
+ */
+export async function loginWithGoogle(
+  credential: string,
+  keys?: Parameters<typeof verifyGoogleIdToken>[1]['keys'],
+): Promise<AuthTokens> {
+  if (!config.googleClientId) {
+    throw new AppError(404, 'GOOGLE_AUTH_DISABLED', 'Google sign-in is not enabled');
+  }
+
+  let identity: GoogleIdentity;
+  try {
+    identity = await verifyGoogleIdToken(credential, { clientId: config.googleClientId, keys });
+  } catch {
+    throw unauthorized('Google sign-in failed');
+  }
+
+  if (!identity.emailVerified) {
+    throw unauthorized('Your Google account email is not verified');
+  }
+
+  const email = identity.email.trim().toLowerCase();
+  const existing = await prisma.user.findUnique({ where: { email } });
+
+  if (existing) return issueTokens(existing);
+
+  const user = await prisma.user.create({
+    data: {
+      name: (identity.name ?? email.split('@')[0] ?? 'Customer').slice(0, 120),
+      email,
+      // Google-only accounts get an unguessable password, so password login is
+      // impossible until a password-reset feature exists.
+      passwordHash: await hashPassword(generateOpaqueToken()),
+      role: 'CUSTOMER',
+    },
+  });
+
+  return issueTokens(user);
 }
 
 export async function getCurrentUser(userId: string): Promise<PublicUser> {

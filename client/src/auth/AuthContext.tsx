@@ -9,6 +9,7 @@ interface AuthState {
   /** True while a stored session is being restored on first load. */
   restoring: boolean;
   signIn: (email: string, password: string) => Promise<User>;
+  signInWithGoogle: (credential: string) => Promise<User>;
   signOut: () => Promise<void>;
   hasRole: (...roles: Role[]) => boolean;
 }
@@ -38,6 +39,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return tokens.user;
   }, []);
 
+  const signInWithGoogle = useCallback(async (credential: string) => {
+    const tokens = await api.loginWithGoogle(credential);
+    setSession(tokens);
+    setUser(tokens.user);
+    return tokens.user;
+  }, []);
+
   const signOut = useCallback(async () => {
     await api.logout();
     setUser(null);
@@ -46,8 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasRole = useCallback((...roles: Role[]) => !!user && roles.includes(user.role), [user]);
 
   const value = useMemo(
-    () => ({ user, restoring, signIn, signOut, hasRole }),
-    [user, restoring, signIn, signOut, hasRole],
+    () => ({ user, restoring, signIn, signInWithGoogle, signOut, hasRole }),
+    [user, restoring, signIn, signInWithGoogle, signOut, hasRole],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

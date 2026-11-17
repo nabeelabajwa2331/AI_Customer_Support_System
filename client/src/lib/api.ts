@@ -173,6 +173,12 @@ export const api = {
     }
   },
 
+  googleConfig: () =>
+    request<{ enabled: boolean; clientId: string | null }>('/auth/google/config', { auth: false }),
+
+  loginWithGoogle: (credential: string) =>
+    request<AuthTokens>('/auth/google', { method: 'POST', body: { credential }, auth: false }),
+
   me: () => request<{ user: User }>('/auth/me').then((body) => body.user),
 
   health: () => request<HealthStatus>('/health', { auth: false }),

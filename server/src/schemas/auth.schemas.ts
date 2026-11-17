@@ -32,5 +32,9 @@ export const refreshSchema = z.object({
   refreshToken: z.string().min(1, 'refreshToken is required'),
 });
 
+export const googleLoginSchema = z.object({
+  credential: z.string().min(1, 'credential is required').max(4096, 'credential is too long'),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
