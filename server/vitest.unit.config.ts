@@ -8,8 +8,10 @@ export default defineConfig({
       'tests/chat.service.test.ts',
       'tests/chunker.test.ts',
       'tests/document-extractor.test.ts',
+      'tests/duration-check.test.ts',
       'tests/embedding.validation.test.ts',
       'tests/env-chat-min-similarity.test.ts',
+      'tests/env-ollama-chat-timeout.test.ts',
       'tests/env-port.test.ts',
       'tests/ingestion.test.ts',
       'tests/knowledge.repository.validation.test.ts',
@@ -18,6 +20,7 @@ export default defineConfig({
       'tests/ollama.client.test.ts',
       'tests/retrieval.test.ts',
       'tests/test-database-url.test.ts',
+      'tests/warmup.test.ts',
     ],
   },
 });

@@ -36,6 +36,9 @@ const envSchema = z.object({
       message: 'EMBEDDING_DIMENSIONS must be 768 for embeddinggemma.',
     }),
   OLLAMA_TIMEOUT_MS: z.coerce.number().int().min(1).max(300_000).default(30_000),
+  // Chat generation needs a longer limit than embeddings: loading the chat
+  // model from cold took ~25-35s on CPU-only hardware, which exceeded 30s.
+  OLLAMA_CHAT_TIMEOUT_MS: z.coerce.number().int().min(1).max(300_000).default(120_000),
 
   // Minimum retrieval similarity (1 - cosine distance) a chunk needs before the
   // chat layer sends it to the model. Provisional value from a small evaluation;
@@ -85,6 +88,7 @@ export interface AppConfig {
   readonly ollamaEmbeddingModel: string;
   readonly embeddingDimensions: number;
   readonly ollamaTimeoutMs: number;
+  readonly ollamaChatTimeoutMs: number;
   readonly chatMinSimilarity: number;
   readonly authSecret: string;
   readonly jwtExpiresIn: string;
@@ -103,6 +107,7 @@ export const config: AppConfig = Object.freeze({
   ollamaEmbeddingModel: env.OLLAMA_EMBEDDING_MODEL,
   embeddingDimensions: env.EMBEDDING_DIMENSIONS,
   ollamaTimeoutMs: env.OLLAMA_TIMEOUT_MS,
+  ollamaChatTimeoutMs: env.OLLAMA_CHAT_TIMEOUT_MS,
   chatMinSimilarity: env.CHAT_MIN_SIMILARITY,
   authSecret: env.AUTH_SECRET,
   jwtExpiresIn: env.JWT_EXPIRES_IN,

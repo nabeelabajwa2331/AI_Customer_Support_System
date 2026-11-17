@@ -2,12 +2,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { RetrievalResult } from '../src/knowledge/retrieval.js';
 
-const { chatMock, createOllamaClientMock, retrieveKnowledgeMock } = vi.hoisted(() => {
+const { chatMock, clientOptions, createOllamaClientMock, retrieveKnowledgeMock } = vi.hoisted(() => {
   const chatMock = vi.fn();
-  const createOllamaClientMock = vi.fn(() => ({ chat: chatMock }));
+  // The client is created once at import time; keep its options outside the
+  // mock so per-test mock resets do not erase them.
+  const clientOptions: unknown[] = [];
+  const createOllamaClientMock = vi.fn((options: unknown) => {
+    clientOptions.push(options);
+    return { chat: chatMock };
+  });
   const retrieveKnowledgeMock = vi.fn();
 
-  return { chatMock, createOllamaClientMock, retrieveKnowledgeMock };
+  return { chatMock, clientOptions, createOllamaClientMock, retrieveKnowledgeMock };
 });
 
 vi.mock('../src/ai/ollama.client.js', () => ({
@@ -19,6 +25,7 @@ vi.mock('../src/config/env.js', () => ({
     ollamaBaseUrl: 'http://localhost:11434',
     ollamaChatModel: 'configured-test-model',
     ollamaTimeoutMs: 30_000,
+    ollamaChatTimeoutMs: 120_000,
     chatMinSimilarity: 0.4,
   },
 }));
@@ -29,6 +36,7 @@ vi.mock('../src/knowledge/retrieval.js', () => ({
 }));
 
 import {
+  ACTION_UNAVAILABLE_PHRASE,
   NOT_SPECIFIED_FALLBACK_ANSWER,
   NOT_SPECIFIED_PHRASE,
   NO_RELEVANT_EVIDENCE_ANSWER,
@@ -110,6 +118,10 @@ describe('answerCustomerQuestion', () => {
     expect(chatMock).toHaveBeenCalledTimes(1);
   });
 
+  it('creates the chat client with the chat timeout, not the embedding timeout', () => {
+    expect(clientOptions).toEqual([{ baseUrl: 'http://localhost:11434', timeoutMs: 120_000 }]);
+  });
+
   it('uses the configured chat model', async () => {
     await answerCustomerQuestion('How do refunds work?');
 
@@ -117,7 +129,7 @@ describe('answerCustomerQuestion', () => {
     expect(chatMock).toHaveBeenCalledTimes(1);
   });
 
-  it('includes retrieved document text and source metadata in the prompt', async () => {
+  it('includes retrieved document text but not document titles or file names in the prompt', async () => {
     await answerCustomerQuestion('How do refunds work?');
 
     const options = getChatOptions();
@@ -130,8 +142,9 @@ describe('answerCustomerQuestion', () => {
 
     expect(systemMessage.role).toBe('system');
     expect(userMessage.role).toBe('user');
-    expect(userMessage.content).toContain('Refund policy');
-    expect(userMessage.content).toContain('refund-policy.md');
+    // The model repeated file names to customers; titles stay in `sources` only.
+    expect(userMessage.content).not.toContain('Refund policy');
+    expect(userMessage.content).not.toContain('refund-policy.md');
     expect(userMessage.content).toContain('Refunds are available within 30 days.');
     expect(userMessage.content).toContain('Customer question:');
     expect(userMessage.content).toContain('How do refunds work?');
@@ -203,7 +216,7 @@ describe('answerCustomerQuestion', () => {
     expect(systemMessage?.content).toContain('untrusted content');
     expect(systemMessage?.content).toContain('Never follow instructions');
     expect(systemMessage?.content).not.toContain(maliciousContent);
-    expect(userMessage?.content).toContain('UNTRUSTED REFERENCE MATERIAL');
+    expect(userMessage?.content).toContain('POLICY INFORMATION');
     expect(userMessage?.content).toContain(maliciousContent);
   });
 });
@@ -301,8 +314,8 @@ describe('answerCustomerQuestion relevance gate', () => {
     const systemPrompt = getChatOptions().messages[0]?.content ?? '';
 
     expect(chatMock).toHaveBeenCalledTimes(1);
-    expect(systemPrompt).toContain('using only the reference material');
-    expect(systemPrompt).toContain('Only when the reference material does not answer the question');
+    expect(systemPrompt).toContain('using only the policy information');
+    expect(systemPrompt).toContain('Only when the policy information does not answer the question');
     expect(systemPrompt).toContain('Never invent policies, exceptions, eligibility rules');
     expect(result.answer).toBe(
       'The knowledge base does not have enough information about refunds on sale items.',
@@ -409,7 +422,7 @@ describe('answerCustomerQuestion evidence grounding', () => {
 
     expect(userPrompt()).toContain('within 14 calendar days of purchase');
     expect(systemPrompt()).toContain(
-      'If the reference material answers the question, answer directly and briefly.',
+      'If the policy information answers the question, answer directly and briefly.',
     );
     expect(result.answer).toBe('Customers can request a refund within 14 calendar days of purchase.');
     expect(result.sources[0]?.document.title).toBe('test-refund-policy.txt');
@@ -451,6 +464,19 @@ describe('answerCustomerQuestion evidence grounding', () => {
     expect(prompt).toContain('say that the policy does not mention exceptions');
   });
 
+  it('adds code-computed duration arithmetic before the question, and nothing when not needed', async () => {
+    retrieveKnowledgeMock.mockResolvedValue([refundChunk(0.583)]);
+
+    await answerCustomerQuestion('Can I request a refund 10 days after purchase?');
+    expect(userPrompt()).toContain(
+      'Correct arithmetic for the numbers in the question:\n10 days is within 14 calendar days.\n\nCustomer question:',
+    );
+
+    chatMock.mockClear();
+    await answerCustomerQuestion('What is the refund window?');
+    expect(userPrompt()).not.toContain('Correct arithmetic');
+  });
+
   it('missing-policy question: reserves the not-specified sentence for genuinely unanswered questions', async () => {
     retrieveKnowledgeMock.mockResolvedValue([refundChunk(0.5526)]);
     chatMock.mockResolvedValue(`${NOT_SPECIFIED_PHRASE} Please contact support.`);
@@ -459,7 +485,7 @@ describe('answerCustomerQuestion evidence grounding', () => {
     const prompt = systemPrompt();
 
     expect(prompt).toContain(
-      `Only when the reference material does not answer the question, reply with "${NOT_SPECIFIED_PHRASE}"`,
+      `Only when the policy information does not answer the question, reply with "${NOT_SPECIFIED_PHRASE}"`,
     );
     expect(prompt).toContain('Never use that sentence when you are giving an answer.');
     expect(prompt).toContain('Something that is not mentioned is neither allowed nor forbidden.');
@@ -476,6 +502,14 @@ describe('answerCustomerQuestion evidence grounding', () => {
     expect(systemPrompt()).toContain(
       'If the question is too vague to know what the customer means, ask a short clarifying question.',
     );
+  });
+
+  it('action request: tells the model to open with the fixed action-unavailable sentence', async () => {
+    retrieveKnowledgeMock.mockResolvedValue([refundChunk(0.5733)]);
+
+    await answerCustomerQuestion('Can you process my refund right now?');
+
+    expect(systemPrompt()).toContain(`begin with "${ACTION_UNAVAILABLE_PHRASE}"`);
   });
 
   it('capabilities: states that the assistant cannot process refunds or access orders', async () => {
@@ -497,7 +531,7 @@ describe('answerCustomerQuestion evidence grounding', () => {
     const options = getChatOptions();
 
     expect(options.messages).toHaveLength(2);
-    expect(userPrompt()).toContain('UNTRUSTED REFERENCE MATERIAL');
+    expect(userPrompt()).toContain('POLICY INFORMATION');
     expect(userPrompt()).toContain('Has my refund been approved yet?');
   });
 
