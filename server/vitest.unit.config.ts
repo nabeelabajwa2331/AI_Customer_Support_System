@@ -19,6 +19,7 @@ export default defineConfig({
       'tests/knowledge.search.test.ts',
       'tests/migration-definition.test.ts',
       'tests/ollama.client.test.ts',
+      'tests/rate-limits.test.ts',
       'tests/retrieval.test.ts',
       'tests/test-database-url.test.ts',
       'tests/warmup.test.ts',

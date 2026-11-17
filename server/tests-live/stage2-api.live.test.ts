@@ -274,14 +274,20 @@ describe('Request safety', () => {
     expect(JSON.stringify(res.body)).not.toMatch(/at \w+ \(|node_modules|\.ts:\d+|prisma/i);
   });
 
-  it('a CUSTOMER can read raw chunk text through /api/knowledge/search', async () => {
-    // Documents current behaviour for the security review; not a pass/fail rule.
+  it('a CUSTOMER cannot read raw chunk text through /api/knowledge/search', async () => {
     const res = await request(app)
       .post('/api/knowledge/search')
       .set('Authorization', `Bearer ${customerToken}`)
       .send({ query: 'shipping' });
 
-    expect(res.status).toBe(200);
-    expect(res.body.results[0]).toHaveProperty('content');
+    expect(res.status).toBe(403);
+    expect(res.body).not.toHaveProperty('results');
+  });
+
+  it('sets security headers on API responses', async () => {
+    const res = await request(app).get('/api/health');
+
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['x-powered-by']).toBeUndefined();
   });
 });

@@ -5,6 +5,7 @@ import path from 'node:path';
 
 import { authenticate } from '../middleware/authenticate.js';
 import { authorize } from '../middleware/authorize.js';
+import { uploadRateLimiter } from '../middleware/rateLimits.js';
 import { validateBody } from '../middleware/validate.js';
 import { ingestDocument } from '../knowledge/ingestion.js';
 import { saveKnowledgeDocument } from '../knowledge/knowledge.repository.js';
@@ -35,10 +36,12 @@ const upload = multer({
   },
 });
 
-// The knowledge base is global, so every authenticated role may search it.
+// Staff only: search returns raw document text. Customers get answers through
+// /api/chat, which returns source metadata but never chunk content.
 knowledgeRouter.post(
   '/search',
   authenticate,
+  authorize('ADMIN', 'SUPPORT_AGENT'),
   validateBody(searchKnowledgeSchema),
   async (req, res) => {
     const { query, topK } = req.body as SearchKnowledgeInput;
@@ -48,55 +51,61 @@ knowledgeRouter.post(
   },
 );
 
-knowledgeRouter.post('/upload', authenticate, authorize('ADMIN'), async (req, res, next) => {
-  try {
-    await mkdir(uploadDirectory, { recursive: true });
-  } catch (error) {
-    next(error);
-    return;
-  }
-
-  upload.single('file')(req, res, async (uploadError) => {
-    if (uploadError) {
-      next(uploadError);
-      return;
-    }
-
-    if (!req.file) {
-      res.status(400).json({
-        success: false,
-        message: 'Select a file using the "file" field.',
-      });
-      return;
-    }
-
+knowledgeRouter.post(
+  '/upload',
+  authenticate,
+  authorize('ADMIN'),
+  uploadRateLimiter,
+  async (req, res, next) => {
     try {
-      // Multer's temp path has no extension, so pass the original filename
-      // through to the extractor (and keep it as the document title/source).
-      const ingested = await ingestDocument(req.file.path, req.file.originalname);
-
-      const document = await saveKnowledgeDocument({
-        title: ingested.fileName,
-        source: req.file.originalname,
-        mimeType: ingested.mimeType,
-        text: ingested.text,
-        createdById: req.user!.id,
-        chunks: ingested.chunks,
-      });
-
-      res.status(201).json({
-        success: true,
-        document: {
-          id: document.id,
-          title: document.title,
-          status: document.status,
-          chunkCount: ingested.chunks.length,
-        },
-      });
+      await mkdir(uploadDirectory, { recursive: true });
     } catch (error) {
       next(error);
-    } finally {
-      await rm(req.file.path, { force: true }).catch(() => undefined);
+      return;
     }
-  });
-});
+
+    upload.single('file')(req, res, async (uploadError) => {
+      if (uploadError) {
+        next(uploadError);
+        return;
+      }
+
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          message: 'Select a file using the "file" field.',
+        });
+        return;
+      }
+
+      try {
+        // Multer's temp path has no extension, so pass the original filename
+        // through to the extractor (and keep it as the document title/source).
+        const ingested = await ingestDocument(req.file.path, req.file.originalname);
+
+        const document = await saveKnowledgeDocument({
+          title: ingested.fileName,
+          source: req.file.originalname,
+          mimeType: ingested.mimeType,
+          text: ingested.text,
+          createdById: req.user!.id,
+          chunks: ingested.chunks,
+        });
+
+        res.status(201).json({
+          success: true,
+          document: {
+            id: document.id,
+            title: document.title,
+            status: document.status,
+            chunkCount: ingested.chunks.length,
+          },
+        });
+      } catch (error) {
+        next(error);
+      } finally {
+        await rm(req.file.path, { force: true }).catch(() => undefined);
+      }
+    });
+  },
+);

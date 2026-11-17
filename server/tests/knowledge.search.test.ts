@@ -85,15 +85,32 @@ beforeEach(() => {
 
   verifyAccessTokenMock.mockResolvedValue({
     sub: 'user-1',
-    email: 'customer@example.com',
-    role: 'CUSTOMER',
+    email: 'agent@example.com',
+    role: 'SUPPORT_AGENT',
   });
   findUniqueMock.mockResolvedValue({
     id: 'user-1',
-    email: 'customer@example.com',
-    role: 'CUSTOMER',
+    email: 'agent@example.com',
+    role: 'SUPPORT_AGENT',
   });
   retrieveKnowledgeMock.mockResolvedValue(results);
+});
+
+describe('POST /api/knowledge/search authorization', () => {
+  it('forbids a CUSTOMER, because results contain raw document text', async () => {
+    findUniqueMock.mockResolvedValue({ id: 'user-1', email: 'c@example.com', role: 'CUSTOMER' });
+
+    const res = await search({ query: 'refund policy' });
+
+    expect(res.status).toBe(403);
+    expect(retrieveKnowledgeMock).not.toHaveBeenCalled();
+  });
+
+  it.each(['ADMIN', 'SUPPORT_AGENT'])('allows %s', async (role) => {
+    findUniqueMock.mockResolvedValue({ id: 'user-1', email: 's@example.com', role });
+
+    expect((await search({ query: 'refund policy' })).status).toBe(200);
+  });
 });
 
 describe('POST /api/knowledge/search', () => {
@@ -118,7 +135,7 @@ describe('POST /api/knowledge/search', () => {
     expect(retrieveKnowledgeMock).not.toHaveBeenCalled();
   });
 
-  it('returns retrieved results for an authenticated CUSTOMER', async () => {
+  it('returns retrieved results for an authenticated SUPPORT_AGENT', async () => {
     const res = await search({ query: '  refund policy  ', topK: 3 });
 
     expect(res.status).toBe(200);
