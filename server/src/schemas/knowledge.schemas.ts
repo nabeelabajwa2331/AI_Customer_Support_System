@@ -12,3 +12,7 @@ export const searchKnowledgeSchema = z.object({
 });
 
 export type SearchKnowledgeInput = z.infer<typeof searchKnowledgeSchema>;
+
+export const documentIdParamsSchema = z.object({
+  id: z.uuid('Document id must be a valid UUID'),
+});

@@ -16,6 +16,7 @@ export default defineConfig({
       'tests/env-port.test.ts',
       'tests/ingestion.test.ts',
       'tests/knowledge.repository.validation.test.ts',
+      'tests/knowledge.documents.test.ts',
       'tests/knowledge.search.test.ts',
       'tests/migration-definition.test.ts',
       'tests/ollama.client.test.ts',

@@ -9,6 +9,8 @@ export async function saveKnowledgeDocument(input: {
   source?: string;
   mimeType: string;
   text: string;
+  /** SHA-256 of the uploaded file, used to reject duplicate uploads. */
+  checksum?: string;
   chunks: Array<{
     chunkIndex: number;
     content: string;
@@ -28,6 +30,7 @@ export async function saveKnowledgeDocument(input: {
         title: input.title,
         source: input.source,
         mimeType: input.mimeType,
+        checksum: input.checksum,
         status: "PROCESSING",
         createdById: input.createdById,
         metadata: {

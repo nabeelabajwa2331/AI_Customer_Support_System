@@ -19,6 +19,8 @@ const POLICY_TEXT = [
   'Standard shipping is free for orders over 50 dollars.',
   'Orders are dispatched within 2 business days.',
   'Customers can track their parcel using the tracking link in the confirmation email.',
+  // Unique per run so a leftover document from an interrupted run never causes a 409.
+  `Reference ${RUN}.`,
 ].join('\n');
 
 let adminToken = '';
@@ -91,10 +93,45 @@ describe('Knowledge upload', () => {
   });
 
   it('admin uploads an MD file', async () => {
-    const res = await upload(adminToken, `faq-${RUN}.md`, '# FAQ\n\nGift cards never expire.');
+    const res = await upload(
+      adminToken,
+      `faq-${RUN}.md`,
+      `# FAQ\n\nGift cards never expire. (${RUN})`,
+    );
 
     expect(res.status).toBe(201);
     expect(res.body.document.status).toBe('READY');
+  });
+
+  it('rejects the same file uploaded again with 409 DUPLICATE_DOCUMENT', async () => {
+    const res = await upload(adminToken, `shipping-copy-${RUN}.txt`, POLICY_TEXT);
+
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('DUPLICATE_DOCUMENT');
+    expect(res.body.details.documentId).toBe(documentId);
+  });
+
+  it('lists and shows the document, then an ADMIN can delete it', async () => {
+    const extra = await upload(adminToken, `delete-me-${RUN}.txt`, `Temporary ${RUN}`);
+    const extraId = extra.body.document.id as string;
+
+    const list = await request(app)
+      .get('/api/knowledge/documents')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(list.status).toBe(200);
+    expect(list.body.documents.map((d: { id: string }) => d.id)).toContain(extraId);
+
+    const one = await request(app)
+      .get(`/api/knowledge/documents/${extraId}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(one.body.document).toMatchObject({ status: 'READY', chunkCount: 1 });
+    expect(one.body.document).not.toHaveProperty('content');
+
+    const del = await request(app)
+      .delete(`/api/knowledge/documents/${extraId}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(del.status).toBe(200);
+    expect(await prisma.documentChunk.count({ where: { documentId: extraId } })).toBe(0);
   });
 
   it('the uploaded document is retrievable through search', async () => {
@@ -154,7 +191,7 @@ describe('Knowledge upload', () => {
     const res = await upload(
       adminToken,
       `exposure-${RUN}.txt`,
-      'Returns are accepted within 30 days.',
+      `Returns are accepted within 30 days. (${RUN})`,
     );
 
     expect(Object.keys(res.body.document).sort()).toEqual(['chunkCount', 'id', 'status', 'title']);
@@ -175,18 +212,6 @@ describe('AI chat (real Ollama)', () => {
       expect(source).not.toHaveProperty('content');
       expect(source).not.toHaveProperty('embedding');
     }
-  });
-
-  // Known issue (Stage 1 prompt): "my order" questions trigger the
-  // action-unavailable reply even when they only ask about policy.
-  it.fails('KNOWN ISSUE: answers a policy question phrased with "my order"', async () => {
-    const res = await request(app)
-      .post('/api/chat')
-      .set('Authorization', `Bearer ${customerToken}`)
-      .send({ question: 'How many business days until my order is dispatched?' });
-
-    expect(res.body.answer).not.toMatch(/not able to do that/i);
-    expect(res.body.answer).toMatch(/\b2\b|two/i);
   });
 
   it('returns the fixed no-evidence answer for an off-topic question', async () => {

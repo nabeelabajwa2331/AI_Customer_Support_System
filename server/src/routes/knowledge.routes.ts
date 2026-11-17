@@ -1,18 +1,61 @@
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import multer from 'multer';
-import { mkdir, rm } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { mkdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 
+import {
+  assertNotDuplicate,
+  deleteKnowledgeDocument,
+  getKnowledgeDocument,
+  listKnowledgeDocuments,
+} from '../knowledge/documents.service.js';
+import { ingestDocument } from '../knowledge/ingestion.js';
+import { saveKnowledgeDocument } from '../knowledge/knowledge.repository.js';
+import { retrieveKnowledge } from '../knowledge/retrieval.js';
+import { validationFailedFromZod } from '../lib/errors.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { authorize } from '../middleware/authorize.js';
 import { uploadRateLimiter } from '../middleware/rateLimits.js';
 import { validateBody } from '../middleware/validate.js';
-import { ingestDocument } from '../knowledge/ingestion.js';
-import { saveKnowledgeDocument } from '../knowledge/knowledge.repository.js';
-import { retrieveKnowledge } from '../knowledge/retrieval.js';
-import { searchKnowledgeSchema, type SearchKnowledgeInput } from '../schemas/knowledge.schemas.js';
+import {
+  documentIdParamsSchema,
+  searchKnowledgeSchema,
+  type SearchKnowledgeInput,
+} from '../schemas/knowledge.schemas.js';
 
 export const knowledgeRouter = Router();
+
+function parseDocumentId(req: Request): string {
+  const parsed = documentIdParamsSchema.safeParse(req.params);
+  if (!parsed.success) throw validationFailedFromZod(parsed.error);
+  return parsed.data.id;
+}
+
+knowledgeRouter.get(
+  '/documents',
+  authenticate,
+  authorize('ADMIN', 'SUPPORT_AGENT'),
+  async (_req, res) => {
+    res.status(200).json({ success: true, documents: await listKnowledgeDocuments() });
+  },
+);
+
+knowledgeRouter.get(
+  '/documents/:id',
+  authenticate,
+  authorize('ADMIN', 'SUPPORT_AGENT'),
+  async (req, res) => {
+    res
+      .status(200)
+      .json({ success: true, document: await getKnowledgeDocument(parseDocumentId(req)) });
+  },
+);
+
+knowledgeRouter.delete('/documents/:id', authenticate, authorize('ADMIN'), async (req, res) => {
+  await deleteKnowledgeDocument(parseDocumentId(req));
+  res.status(200).json({ success: true, message: 'Document deleted' });
+});
 
 const uploadDirectory = path.resolve(process.cwd(), 'uploads', 'knowledge');
 
@@ -79,6 +122,12 @@ knowledgeRouter.post(
       }
 
       try {
+        // Checked before ingestion so a duplicate never costs embedding time.
+        const checksum = createHash('sha256')
+          .update(await readFile(req.file.path))
+          .digest('hex');
+        await assertNotDuplicate(checksum);
+
         // Multer's temp path has no extension, so pass the original filename
         // through to the extractor (and keep it as the document title/source).
         const ingested = await ingestDocument(req.file.path, req.file.originalname);
@@ -88,6 +137,7 @@ knowledgeRouter.post(
           source: req.file.originalname,
           mimeType: ingested.mimeType,
           text: ingested.text,
+          checksum,
           createdById: req.user!.id,
           chunks: ingested.chunks,
         });
