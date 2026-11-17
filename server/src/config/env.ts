@@ -54,6 +54,10 @@ const envSchema = z.object({
       .default(0.4),
   ),
 
+  // Per-user limits for expensive routes. Raise temporarily for evaluation runs.
+  CHAT_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).max(10_000).default(10),
+  UPLOAD_RATE_LIMIT_PER_HOUR: z.coerce.number().int().min(1).max(10_000).default(20),
+
   // JWT signing secret (>=32 chars).
   AUTH_SECRET: z.string().min(32, 'AUTH_SECRET must be at least 32 characters'),
 
@@ -90,6 +94,8 @@ export interface AppConfig {
   readonly ollamaTimeoutMs: number;
   readonly ollamaChatTimeoutMs: number;
   readonly chatMinSimilarity: number;
+  readonly chatRateLimitPerMinute: number;
+  readonly uploadRateLimitPerHour: number;
   readonly authSecret: string;
   readonly jwtExpiresIn: string;
   readonly refreshTokenTtlDays: number;
@@ -109,6 +115,8 @@ export const config: AppConfig = Object.freeze({
   ollamaTimeoutMs: env.OLLAMA_TIMEOUT_MS,
   ollamaChatTimeoutMs: env.OLLAMA_CHAT_TIMEOUT_MS,
   chatMinSimilarity: env.CHAT_MIN_SIMILARITY,
+  chatRateLimitPerMinute: env.CHAT_RATE_LIMIT_PER_MINUTE,
+  uploadRateLimitPerHour: env.UPLOAD_RATE_LIMIT_PER_HOUR,
   authSecret: env.AUTH_SECRET,
   jwtExpiresIn: env.JWT_EXPIRES_IN,
   refreshTokenTtlDays: env.REFRESH_TOKEN_TTL_DAYS,
