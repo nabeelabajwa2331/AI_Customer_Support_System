@@ -11,6 +11,7 @@ export default defineConfig({
       'tests/duration-check.test.ts',
       'tests/embedding.validation.test.ts',
       'tests/env-chat-min-similarity.test.ts',
+      'tests/error-handler.test.ts',
       'tests/env-ollama-chat-timeout.test.ts',
       'tests/env-port.test.ts',
       'tests/ingestion.test.ts',

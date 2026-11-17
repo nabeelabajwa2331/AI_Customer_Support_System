@@ -177,6 +177,19 @@ describe('answerCustomerQuestion', () => {
     );
   });
 
+  it('reports an embedding-model failure during retrieval as 502, not 500', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { AppError } = await import('../src/lib/errors.js');
+    retrieveKnowledgeMock.mockRejectedValue(
+      new AppError(502, 'EMBEDDING_FAILED', 'Could not generate a query embedding.'),
+    );
+
+    await expect(answerCustomerQuestion('How do refunds work?')).rejects.toMatchObject({
+      status: 502,
+      code: 'CHAT_RETRIEVAL_FAILED',
+    });
+  });
+
   it('logs the safe chat-generation failure detail without exposing it to the client', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     chatMock.mockRejectedValue(new Error('Ollama chat request failed with HTTP 500'));

@@ -21,6 +21,24 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return;
   }
 
+  // express.json() errors. Handled before the generic log below because they
+  // carry the raw request body (which can contain passwords).
+  if (typeof err === 'object' && err !== null && 'type' in err) {
+    if (err.type === 'entity.parse.failed') {
+      res
+        .status(400)
+        .json({ success: false, code: 'INVALID_JSON', message: 'Request body is not valid JSON' });
+      return;
+    }
+
+    if (err.type === 'entity.too.large') {
+      res
+        .status(413)
+        .json({ success: false, code: 'PAYLOAD_TOO_LARGE', message: 'Request body is too large' });
+      return;
+    }
+  }
+
   if (err instanceof ZodError) {
     const validation = validationFailedFromZod(err);
     res.status(validation.status).json({
@@ -33,12 +51,7 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
 
   // Prisma unique-constraint violation (e.g. duplicate email) -> 409.
-if (
-  typeof err === 'object' &&
-  err !== null &&
-  'code' in err &&
-  err.code === 'P2002'
-) {
+  if (typeof err === 'object' && err !== null && 'code' in err && err.code === 'P2002') {
     res.status(409).json({
       success: false,
       code: 'CONFLICT',
@@ -46,34 +59,36 @@ if (
     });
     return;
   }
-if (err instanceof multer.MulterError) {
-  const message =
-    err.code === 'LIMIT_FILE_SIZE'
-      ? 'File exceeds the 10 MB upload limit'
-      : err.code === 'LIMIT_FILE_COUNT'
-        ? 'Only one file can be uploaded at a time'
-        : 'File upload failed';
+  if (err instanceof multer.MulterError) {
+    const message =
+      err.code === 'LIMIT_FILE_SIZE'
+        ? 'File exceeds the 10 MB upload limit'
+        : err.code === 'LIMIT_FILE_COUNT'
+          ? 'Only one file can be uploaded at a time'
+          : 'File upload failed';
 
-  res.status(400).json({
-    success: false,
-    code: 'UPLOAD_ERROR',
-    message,
-  });
-  return;
-}
+    res.status(400).json({
+      success: false,
+      code: 'UPLOAD_ERROR',
+      message,
+    });
+    return;
+  }
 
-if (
-  err instanceof Error &&
-  err.message === 'Only PDF, DOCX, TXT, and MD files are supported.'
-) {
-  res.status(400).json({
-    success: false,
-    code: 'UNSUPPORTED_FILE_TYPE',
-    message: err.message,
-  });
-  return;
-}
-  console.error('[server] Unhandled error:', err);
+  if (err instanceof Error && err.message === 'Only PDF, DOCX, TXT, and MD files are supported.') {
+    res.status(400).json({
+      success: false,
+      code: 'UNSUPPORTED_FILE_TYPE',
+      message: err.message,
+    });
+    return;
+  }
+  // Name, message and stack only: logging the whole object could include
+  // request data attached by libraries.
+  console.error(
+    '[server] Unhandled error:',
+    err instanceof Error ? (err.stack ?? `${err.name}: ${err.message}`) : 'Non-error value thrown',
+  );
   res
     .status(500)
     .json({ success: false, code: 'INTERNAL_ERROR', message: 'Internal server error' });

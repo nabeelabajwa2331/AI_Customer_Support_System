@@ -1,3 +1,4 @@
+import { AppError } from '../lib/errors.js';
 import { extractDocumentText } from './document-extractor.js';
 import { chunkText } from './chunker.js';
 
@@ -17,7 +18,7 @@ export async function prepareDocument(
   const chunks = chunkText(extracted.text);
 
   if (chunks.length === 0) {
-    throw new Error('The document contains no chunkable text.');
+    throw new AppError(400, 'EMPTY_DOCUMENT', 'The document contains no chunkable text.');
   }
 
   return {

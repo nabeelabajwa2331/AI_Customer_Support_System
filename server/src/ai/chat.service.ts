@@ -218,8 +218,11 @@ export async function answerCustomerQuestion(question: string): Promise<ChatAnsw
     const code = getErrorCode(error);
     console.error(`[chat] Knowledge retrieval failed${code ? ` (${code})` : ''}.`);
 
+    // 502 when the embedding model (an upstream service) failed; 500 otherwise.
+    const status = error instanceof AppError && error.status === 502 ? 502 : 500;
+
     throw new AppError(
-      500,
+      status,
       'CHAT_RETRIEVAL_FAILED',
       'Could not retrieve knowledge for the question.',
     );
