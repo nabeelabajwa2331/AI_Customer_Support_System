@@ -194,6 +194,46 @@ export async function loginWithGoogle(
   return issueTokens(user);
 }
 
+export async function updateProfile(userId: string, name: string): Promise<PublicUser> {
+  const user = await prisma.user.update({ where: { id: userId }, data: { name } });
+  return toPublicUser(user);
+}
+
+/**
+ * Changes the password after verifying the current one, revokes every refresh
+ * token (signing out other devices), and returns a fresh session for this one.
+ */
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<AuthTokens> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw unauthorized('Authentication required');
+
+  if (!(await verifyPassword(currentPassword, user.passwordHash))) {
+    throw new AppError(400, 'INVALID_CURRENT_PASSWORD', 'The current password is incorrect');
+  }
+
+  if (await verifyPassword(newPassword, user.passwordHash)) {
+    throw new AppError(
+      400,
+      'PASSWORD_UNCHANGED',
+      'Choose a password different from the current one',
+    );
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+  // Old sessions are deleted rather than marked revoked: a revoked token being
+  // reused triggers theft detection, which would also end the new session.
+  const [updated] = await prisma.$transaction([
+    prisma.user.update({ where: { id: userId }, data: { passwordHash } }),
+    prisma.refreshToken.deleteMany({ where: { userId } }),
+  ]);
+
+  return issueTokens(updated);
+}
+
 export async function getCurrentUser(userId: string): Promise<PublicUser> {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {

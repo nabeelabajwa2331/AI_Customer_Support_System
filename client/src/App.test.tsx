@@ -3,8 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AppRoutes } from './App';
-import { AuthProvider } from './auth/AuthContext';
+import { AppProviders, AppRoutes } from './App';
 import type { AuthTokens, Role } from './types/api';
 
 function json(status: number, body: unknown) {
@@ -38,9 +37,9 @@ function mockBackend(role: Role | null, routes: Record<string, unknown> = {}) {
 function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <AuthProvider>
+      <AppProviders>
         <AppRoutes />
-      </AuthProvider>
+      </AppProviders>
     </MemoryRouter>,
   );
 }
@@ -57,23 +56,20 @@ describe('routing and roles', () => {
     mockBackend('CUSTOMER');
     renderAt('/knowledge');
 
-    expect(await screen.findByRole('heading', { name: 'AI Assistant', level: 2 })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'AI Assistant', level: 1 })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Knowledge Base/ })).not.toBeInTheDocument();
     expect(screen.queryByText('Support Tickets')).not.toBeInTheDocument();
   });
 
-  it('shows staff pages to an ADMIN, with planned sections disabled rather than linked', async () => {
+  it('shows staff pages to an ADMIN, and no navigation for features that do not exist yet', async () => {
     mockBackend('ADMIN', { '/knowledge/documents': { documents: [] }, '/health': { status: 'ok' } });
     renderAt('/overview');
 
-    expect(await screen.findByText('Welcome back, Ada')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Good (morning|afternoon|evening), Ada/ })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Knowledge Base/ })).toBeInTheDocument();
+    expect(screen.queryByText('Support Tickets')).not.toBeInTheDocument();
 
-    const tickets = screen.getByText('Support Tickets').closest('.nav-link');
-    expect(tickets).toHaveAttribute('aria-disabled', 'true');
-    expect(tickets?.tagName).not.toBe('A');
-
-    await waitFor(() => expect(screen.getByText('Online')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Operational')).toBeInTheDocument());
   });
 });
 
@@ -112,6 +108,42 @@ describe('AI assistant', () => {
     await userEvent.type(await screen.findByLabelText('Your question'), 'Hello{Enter}');
 
     expect(await screen.findByText(/sending questions quickly/)).toBeInTheDocument();
+  });
+});
+
+describe('settings', () => {
+  it('saves a new display name and updates the menu', async () => {
+    const fetchMock = mockBackend('CUSTOMER', {
+      '/auth/me': { success: true, user: { ...session('CUSTOMER').user, name: 'Ada King' } },
+    });
+    renderAt('/settings');
+
+    const input = await screen.findByLabelText('Display name');
+    await waitFor(() => expect(input).toHaveValue('Ada King'));
+
+    await userEvent.clear(input);
+    await userEvent.type(input, 'Countess Ada');
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    const patch = await waitFor(() => {
+      const call = fetchMock.mock.calls.find(([, init]) => init?.method === 'PATCH');
+      expect(call).toBeDefined();
+      return call!;
+    });
+    expect(JSON.parse(patch[1]!.body as string)).toEqual({ name: 'Countess Ada' });
+    expect(await screen.findByText('Profile updated')).toBeInTheDocument();
+  });
+
+  it('blocks a password change until the confirmation matches', async () => {
+    mockBackend('CUSTOMER', { '/auth/me': { success: true, user: session('CUSTOMER').user } });
+    renderAt('/settings?tab=security');
+
+    await userEvent.type(await screen.findByLabelText(/^Current password/), 'OldPass123');
+    await userEvent.type(screen.getByLabelText(/^New password/), 'NewPass456!');
+    await userEvent.type(screen.getByLabelText(/^Confirm new password/), 'Different1');
+
+    expect(screen.getByText("Passwords don't match.")).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Update password' })).toBeDisabled();
   });
 });
 

@@ -11,10 +11,23 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<User>;
   signInWithGoogle: (credential: string) => Promise<User>;
   signOut: () => Promise<void>;
+  /** Replaces the cached user after a profile change. */
+  setCurrentUser: (user: User) => void;
   hasRole: (...roles: Role[]) => boolean;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
+
+// Matches CHAT_STORAGE_PREFIX in AssistantPage; kept here to avoid an import cycle.
+function clearConversationHistory(): void {
+  try {
+    for (const key of Object.keys(sessionStorage)) {
+      if (key.startsWith('support.chat.')) sessionStorage.removeItem(key);
+    }
+  } catch {
+    // Storage unavailable: nothing stored.
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -48,13 +61,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     await api.logout();
+    clearConversationHistory();
     setUser(null);
   }, []);
 
   const hasRole = useCallback((...roles: Role[]) => !!user && roles.includes(user.role), [user]);
 
   const value = useMemo(
-    () => ({ user, restoring, signIn, signInWithGoogle, signOut, hasRole }),
+    () => ({ user, restoring, signIn, signInWithGoogle, signOut, setCurrentUser: setUser, hasRole }),
     [user, restoring, signIn, signInWithGoogle, signOut, hasRole],
   );
 

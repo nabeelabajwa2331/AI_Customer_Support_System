@@ -181,6 +181,19 @@ export const api = {
 
   me: () => request<{ user: User }>('/auth/me').then((body) => body.user),
 
+  updateProfile: (name: string) =>
+    request<{ user: User }>('/auth/me', { method: 'PATCH', body: { name } }).then((b) => b.user),
+
+  /** Returns a new session; every other session is signed out by the server. */
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<AuthTokens>('/auth/change-password', {
+      method: 'POST',
+      body: { currentPassword, newPassword },
+    }).then((tokens) => {
+      setSession(tokens);
+      return tokens;
+    }),
+
   health: () => request<HealthStatus>('/health', { auth: false }),
 
   askQuestion: (question: string, signal?: AbortSignal) =>

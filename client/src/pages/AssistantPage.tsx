@@ -1,25 +1,50 @@
-import { Bot, FileText, SendHorizontal, Trash2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import type { FormEvent, KeyboardEvent } from 'react';
+import { Bot, Check, Copy, FileText, Plus, SendHorizontal, Sparkles } from 'lucide-react';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import type { FormEvent, KeyboardEvent, ReactNode } from 'react';
 
 import { useAuth } from '../auth/AuthContext';
-import { EmptyState } from '../components/Feedback';
+import { Avatar } from '../components/Avatar';
 import { ApiError, api } from '../lib/api';
 import { formatPercent } from '../lib/format';
 import type { ChatSource } from '../types/api';
 
 interface Message {
-  id: number;
+  id: string;
   role: 'user' | 'assistant' | 'error';
   text: string;
+  at: string;
   sources?: ChatSource[];
 }
 
-// The backend has a 120s chat timeout; a cold model can take ~45s on CPU.
+// A cold model can take ~45s on CPU; the backend allows 120s.
 const SLOW_NOTICE_MS = 8_000;
 const MAX_QUESTION_LENGTH = 2_000;
+export const CHAT_STORAGE_PREFIX = 'support.chat.';
 
-/** One entry per document, keeping its best match. */
+const SUGGESTIONS = [
+  'What is your refund policy?',
+  'How long does an approved refund take?',
+  'What do I need to request a refund?',
+  'Can I get a refund 10 days after purchase?',
+];
+
+function loadMessages(key: string): Message[] {
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as Message[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveMessages(key: string, messages: Message[]): void {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(messages.slice(-60)));
+  } catch {
+    // Storage full or unavailable: history just won't survive navigation.
+  }
+}
+
 function uniqueDocuments(sources: ChatSource[]): ChatSource[] {
   const best = new Map<string, ChatSource>();
   for (const source of sources) {
@@ -36,15 +61,65 @@ function errorText(error: unknown): string {
   return error.message;
 }
 
+/** Renders **bold** inline. Everything else stays plain text (no HTML injection). */
+function inline(text: string): ReactNode[] {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith('**') && part.endsWith('**') ? <strong key={i}>{part.slice(2, -2)}</strong> : <Fragment key={i}>{part}</Fragment>,
+  );
+}
+
+/** Paragraphs and "-" / "1." lists, which small models commonly produce. */
+function RichText({ text }: { text: string }) {
+  const blocks = text.trim().split(/\n{2,}/);
+  return (
+    <>
+      {blocks.map((block, i) => {
+        const lines = block.split('\n');
+        if (lines.every((line) => /^\s*([-*•]|\d+[.)])\s+/.test(line))) {
+          const ordered = /^\s*\d/.test(lines[0]!);
+          const items = lines.map((line, j) => <li key={j}>{inline(line.replace(/^\s*([-*•]|\d+[.)])\s+/, ''))}</li>);
+          return ordered ? <ol key={i}>{items}</ol> : <ul key={i}>{items}</ul>;
+        }
+        return <p key={i}>{inline(block)}</p>;
+      })}
+    </>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard blocked; nothing to do.
+    }
+  }
+  return (
+    <button type="button" className="message-action" onClick={() => void copy()} aria-label="Copy answer">
+      {copied ? <Check size={14} /> : <Copy size={14} />}
+      {copied ? 'Copied' : 'Copy'}
+    </button>
+  );
+}
+
+const timeFormat = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
+
 export function AssistantPage() {
-  const { hasRole } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { user, hasRole } = useAuth();
+  const storageKey = `${CHAT_STORAGE_PREFIX}${user?.id ?? 'anonymous'}`;
+  const [messages, setMessages] = useState<Message[]>(() => loadMessages(storageKey));
   const [draft, setDraft] = useState('');
   const [pending, setPending] = useState(false);
   const [slow, setSlow] = useState(false);
-  const nextId = useRef(1);
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const controller = useRef<AbortController | null>(null);
+  const isStaff = hasRole('ADMIN', 'SUPPORT_AGENT');
+
+  useEffect(() => saveMessages(storageKey, messages), [storageKey, messages]);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
@@ -52,8 +127,11 @@ export function AssistantPage() {
 
   useEffect(() => () => controller.current?.abort(), []);
 
-  function push(message: Omit<Message, 'id'>) {
-    setMessages((current) => [...current, { ...message, id: nextId.current++ }]);
+  function push(message: Omit<Message, 'id' | 'at'>) {
+    setMessages((current) => [
+      ...current,
+      { ...message, id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, at: new Date().toISOString() },
+    ]);
   }
 
   async function ask(question: string) {
@@ -75,6 +153,7 @@ export function AssistantPage() {
       window.clearTimeout(slowTimer);
       setPending(false);
       setSlow(false);
+      inputRef.current?.focus();
     }
   }
 
@@ -91,60 +170,80 @@ export function AssistantPage() {
     }
   }
 
-  const isStaff = hasRole('ADMIN', 'SUPPORT_AGENT');
+  const empty = messages.length === 0 && !pending;
 
   return (
     <div className="assistant">
-      <div className="card assistant-card">
-        <div className="assistant-header">
+      <div className="assistant-toolbar">
+        <div className="assistant-title">
+          <span className="assistant-badge" aria-hidden="true">
+            <Sparkles size={16} />
+          </span>
           <div>
-            <h2>AI Assistant</h2>
-            <p className="muted">
-              Answers come only from the knowledge base. The assistant cannot look up orders or process refunds.
-            </p>
+            <h1>AI Assistant</h1>
+            <p>Answers come only from the knowledge base, with sources.</p>
           </div>
-          {messages.length > 0 ? (
-            <button
-              type="button"
-              className="button button-ghost"
-              onClick={() => setMessages([])}
-              disabled={pending}
-            >
-              <Trash2 size={16} aria-hidden="true" /> Clear
-            </button>
-          ) : null}
         </div>
+        {messages.length > 0 ? (
+          <button type="button" className="button button-secondary" onClick={() => setMessages([])} disabled={pending}>
+            <Plus size={16} aria-hidden="true" /> New chat
+          </button>
+        ) : null}
+      </div>
 
+      <div className="chat-panel">
         <div className="message-list" ref={listRef} aria-live="polite">
-          {messages.length === 0 && !pending ? (
-            <EmptyState icon={Bot} title="Ask a question">
-              {isStaff
-                ? 'Test how the assistant answers customers using the documents in the knowledge base.'
-                : 'Ask about refunds, orders or policies. Answers are based on our published policies.'}
-            </EmptyState>
+          {empty ? (
+            <div className="chat-welcome">
+              <span className="chat-welcome-icon" aria-hidden="true">
+                <Bot size={26} />
+              </span>
+              <h2>How can we help{user ? `, ${user.name.split(' ')[0]}` : ''}?</h2>
+              <p>
+                {isStaff
+                  ? 'Test how the assistant answers customers from the documents in the knowledge base.'
+                  : 'Ask about refunds, orders or our policies. Every answer is based on our published documents.'}
+              </p>
+              <div className="suggestions">
+                {SUGGESTIONS.map((suggestion) => (
+                  <button key={suggestion} type="button" className="suggestion" onClick={() => void ask(suggestion)}>
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+              <p className="chat-welcome-note">The assistant can't look up orders or process refunds.</p>
+            </div>
           ) : null}
 
           {messages.map((message) => (
             <div key={message.id} className={`message message-${message.role}`}>
-              {message.role !== 'user' ? (
+              {message.role === 'user' ? (
+                user ? <Avatar name={user.name} size="sm" /> : null
+              ) : (
                 <span className="message-avatar" aria-hidden="true">
                   <Bot size={16} />
                 </span>
-              ) : null}
-              <div className="message-body">
-                <p>{message.text}</p>
-                {message.sources && message.sources.length > 0 ? (
-                  <div className="sources">
-                    <span className="sources-label">Sources</span>
-                    {uniqueDocuments(message.sources).map((source) => (
-                      <span key={source.documentId} className="source-chip" title={source.document.source ?? undefined}>
-                        <FileText size={13} aria-hidden="true" />
-                        {source.document.title}
-                        {isStaff ? <span className="source-score">{formatPercent(source.similarity)}</span> : null}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
+              )}
+              <div className="message-content">
+                <div className="message-body">
+                  <RichText text={message.text} />
+                  {message.sources && message.sources.length > 0 ? (
+                    <div className="sources">
+                      <span className="sources-label">Sources</span>
+                      {uniqueDocuments(message.sources).map((source) => (
+                        <span key={source.documentId} className="source-chip" title={source.document.source ?? undefined}>
+                          <FileText size={13} aria-hidden="true" />
+                          {source.document.title}
+                          {isStaff ? <span className="source-score">{formatPercent(source.similarity)}</span> : null}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="message-meta">
+                  <time dateTime={message.at}>{timeFormat.format(new Date(message.at))}</time>
+                  {message.role === 'assistant' ? <CopyButton text={message.text} /> : null}
+                </div>
               </div>
             </div>
           ))}
@@ -154,44 +253,52 @@ export function AssistantPage() {
               <span className="message-avatar" aria-hidden="true">
                 <Bot size={16} />
               </span>
-              <div className="message-body">
-                <span className="typing" aria-label="Assistant is thinking">
-                  <span />
-                  <span />
-                  <span />
-                </span>
-                {slow ? (
-                  <p className="muted small">
-                    Still working. The first answer after a quiet period can take up to a minute while the model loads.
-                  </p>
-                ) : null}
+              <div className="message-content">
+                <div className="message-body">
+                  <span className="typing" aria-label="Assistant is thinking">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                  {slow ? (
+                    <p className="muted small">
+                      Still working. The first answer after a quiet period can take up to a minute while the model loads.
+                    </p>
+                  ) : null}
+                </div>
               </div>
             </div>
           ) : null}
         </div>
 
         <form className="composer" onSubmit={handleSubmit}>
-          <label htmlFor="question" className="sr-only">
-            Your question
-          </label>
-          <textarea
-            id="question"
-            rows={1}
-            placeholder="Type your question..."
-            value={draft}
-            maxLength={MAX_QUESTION_LENGTH}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={pending}
-          />
-          <button
-            type="submit"
-            className="button button-primary composer-send"
-            disabled={pending || !draft.trim()}
-            aria-label="Send question"
-          >
-            <SendHorizontal size={18} aria-hidden="true" />
-          </button>
+          <div className="composer-box">
+            <label htmlFor="question" className="sr-only">
+              Your question
+            </label>
+            <textarea
+              ref={inputRef}
+              id="question"
+              rows={1}
+              placeholder="Ask a question about orders, refunds or policies..."
+              value={draft}
+              maxLength={MAX_QUESTION_LENGTH}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={pending}
+            />
+            <button
+              type="submit"
+              className="button button-primary composer-send"
+              disabled={pending || !draft.trim()}
+              aria-label="Send question"
+            >
+              <SendHorizontal size={18} aria-hidden="true" />
+            </button>
+          </div>
+          <p className="composer-hint">
+            <kbd>Enter</kbd> to send · <kbd>Shift</kbd> + <kbd>Enter</kbd> for a new line
+          </p>
         </form>
       </div>
     </div>

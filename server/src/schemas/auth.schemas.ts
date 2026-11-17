@@ -32,6 +32,15 @@ export const refreshSchema = z.object({
   refreshToken: z.string().min(1, 'refreshToken is required'),
 });
 
+export const updateProfileSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(120, 'Name is too long'),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required').max(72),
+  newPassword: passwordSchema,
+});
+
 export const googleLoginSchema = z.object({
   credential: z.string().min(1, 'credential is required').max(4096, 'credential is too long'),
 });

@@ -5,10 +5,12 @@ import { config, isTest } from '../config/env.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { validateBody } from '../middleware/validate.js';
 import {
+  changePasswordSchema,
   googleLoginSchema,
   loginSchema,
   refreshSchema,
   registerSchema,
+  updateProfileSchema,
 } from '../schemas/auth.schemas.js';
 import * as authService from '../services/auth.service.js';
 
@@ -62,3 +64,24 @@ authRouter.get('/me', authenticate, async (req, res) => {
   const user = await authService.getCurrentUser(req.user!.id);
   res.status(200).json({ success: true, user });
 });
+
+// Only the display name is editable; email and role are never changed here.
+authRouter.patch('/me', authenticate, validateBody(updateProfileSchema), async (req, res) => {
+  const user = await authService.updateProfile(req.user!.id, req.body.name);
+  res.status(200).json({ success: true, user });
+});
+
+authRouter.post(
+  '/change-password',
+  authenticate,
+  authRateLimiter,
+  validateBody(changePasswordSchema),
+  async (req, res) => {
+    const tokens = await authService.changePassword(
+      req.user!.id,
+      req.body.currentPassword,
+      req.body.newPassword,
+    );
+    res.status(200).json({ success: true, ...tokens });
+  },
+);
