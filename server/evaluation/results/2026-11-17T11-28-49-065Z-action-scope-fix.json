@@ -1,0 +1,1250 @@
+{
+  "label": "action-scope-fix",
+  "summary": {
+    "answerable": "11/12",
+    "paraphrase": "7/13",
+    "unanswerable": "15/15",
+    "ambiguous": "3/5",
+    "consistency": "5/5",
+    "overallQuestions": "41/50",
+    "http200": "60/60",
+    "leakage": "0",
+    "contradictions": "4",
+    "claimedActions": "0",
+    "hallucinations": "0",
+    "latencyMedianMs": "2898",
+    "latencyMaxMs": "23809"
+  },
+  "graded": [
+    {
+      "id": "A01",
+      "category": "answerable",
+      "question": "How many days do I have to request a refund?",
+      "status": 200,
+      "latencyMs": 23809,
+      "answer": "The refund request must be made within 14 calendar days of purchase.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6685753273980303,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A02",
+      "category": "answerable",
+      "question": "What is the refund window?",
+      "status": 200,
+      "latencyMs": 3224,
+      "answer": "The refund window is 14 calendar days of purchase.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6323763763315133,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A03",
+      "category": "answerable",
+      "question": "What do I need to provide when requesting a refund?",
+      "status": 200,
+      "latencyMs": 3291,
+      "answer": "Customers must provide their order number when requesting a refund.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6049183386272383,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A04",
+      "category": "answerable",
+      "question": "How long does it take for an approved refund to be processed?",
+      "status": 200,
+      "latencyMs": 3062,
+      "answer": "Approved refunds are processed within 5 business days.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5934344202732005,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A05",
+      "category": "answerable",
+      "question": "Can I request a refund 10 days after purchase?",
+      "status": 200,
+      "latencyMs": 9798,
+      "answer": "Yes, you can request a refund 10 days after purchase as long as you provide your order number, and your request will be processed within 5 business days. This is within the 14 calendar days specified in the policy.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5826416362907316,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A06",
+      "category": "answerable",
+      "question": "Can I request a refund 20 days after I bought something?",
+      "status": 200,
+      "latencyMs": 4681,
+      "answer": "No, the refund request must be made within 14 calendar days of purchase.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5812555994848995,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A07",
+      "category": "answerable",
+      "question": "Is the refund window counted in calendar days or business days?",
+      "status": 200,
+      "latencyMs": 9784,
+      "answer": "The available policy does not specify this. This document states that the refund window is within 14 calendar days of purchase, but it does not clarify whether the 5 business days for processing the refund are also calendar days or business days. Please contact support for further assistance.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5574837698724692,
+      "pass": false,
+      "failures": [
+        "incorrect refusal",
+        "contradiction"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": true,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A08",
+      "category": "answerable",
+      "question": "Do I need my order number to get a refund?",
+      "status": 200,
+      "latencyMs": 3504,
+      "answer": "Yes, the policy requires customers to provide their order number when requesting a refund.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5870616228435599,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A09",
+      "category": "answerable",
+      "question": "Are approved refunds processed within 5 business days?",
+      "status": 200,
+      "latencyMs": 4634,
+      "answer": "Yes, based on the policy, approved refunds are processed within 5 business days.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6402009416465022,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A10",
+      "category": "answerable",
+      "question": "Is 14 days the deadline for requesting a refund?",
+      "status": 200,
+      "latencyMs": 4854,
+      "answer": "Yes, the deadline for requesting a refund is within 14 calendar days as per the policy.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6606512058946241,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A11",
+      "category": "answerable",
+      "question": "What is your refund policy?",
+      "status": 200,
+      "latencyMs": 8501,
+      "answer": "Our refund policy allows customers to request a refund within 14 calendar days of purchase. Customers must provide their order number when requesting a refund. Approved refunds are processed within 5 business days. This document is for local integration testing only.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6386976142040485,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A12",
+      "category": "answerable",
+      "question": "After approval, how quickly is my refund processed?",
+      "status": 200,
+      "latencyMs": 2588,
+      "answer": "Approved refunds are processed within 5 business days.",
+      "sourceCount": 1,
+      "topSimilarity": 0.577292341540455,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P01",
+      "category": "paraphrase",
+      "question": "How long do I have to get my money back?",
+      "status": 200,
+      "latencyMs": 3315,
+      "answer": "You have 14 calendar days from the purchase date to request a refund.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5403653527612909,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P02",
+      "category": "paraphrase",
+      "question": "What's the deadline to ask for my money back?",
+      "status": 200,
+      "latencyMs": 3603,
+      "answer": "The deadline to ask for your money back is within 14 calendar days of purchase.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5326711730189163,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P03",
+      "category": "paraphrase",
+      "question": "What info should I have ready before asking for a refund?",
+      "status": 200,
+      "latencyMs": 3035,
+      "answer": "You should have your order number ready before asking for a refund.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5715704986577302,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P04",
+      "category": "paraphrase",
+      "question": "What should I include in my refund request?",
+      "status": 200,
+      "latencyMs": 7119,
+      "answer": "The available policy does not specify this. The policy states that customers must provide their order number when requesting a refund. However, it does not detail what else should be included. Please contact support for further assistance.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5716586965294154,
+      "pass": false,
+      "failures": [
+        "incorrect refusal",
+        "contradiction"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": true,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P05",
+      "category": "paraphrase",
+      "question": "Once my refund is okayed, when will it be completed?",
+      "status": 200,
+      "latencyMs": 9275,
+      "answer": "The available policy does not specify this. According to the policy, approved refunds are processed within 5 business days. However, the policy does not provide a specific timeframe for when the refund will be completed after approval. I suggest contacting support for more information.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5358808211712023,
+      "pass": false,
+      "failures": [
+        "incorrect refusal",
+        "contradiction"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": true,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P06",
+      "category": "paraphrase",
+      "question": "I bought something two weeks ago. Can I still ask for a refund?",
+      "status": 200,
+      "latencyMs": 11900,
+      "answer": "Yes, based on the policy, you can still ask for a refund as long as you provide your order number within 14 calendar days of purchase. The policy allows refunds within 14 calendar days of purchase, and you have not exceeded this timeframe. Please provide your order number to proceed with the refund request.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5462122940205145,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P07",
+      "category": "paraphrase",
+      "question": "I purchased an item 3 days ago and changed my mind. Can I get reimbursed?",
+      "status": 200,
+      "latencyMs": 20907,
+      "answer": "No, you cannot get reimbursed within 14 calendar days of purchase. The policy states that refunds are allowed within 14 calendar days of purchase, and your purchase was made 3 days ago, which is within this timeframe. However, the policy also requires that you provide your order number when requesting a refund, and processing approved refunds takes 5 business days. Since it has been less than 14 calendar days, you need to provide your order number and wait for the processing time. If you have not yet provided your order number, you should do so to proceed with the refund request.",
+      "sourceCount": 1,
+      "topSimilarity": 0.49958604569274456,
+      "pass": false,
+      "failures": [
+        "missing /\\byes\\b/"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P08",
+      "category": "paraphrase",
+      "question": "It's been a month since my purchase. Am I still eligible for a refund?",
+      "status": 200,
+      "latencyMs": 10614,
+      "answer": "The available policy does not specify this. The refund policy states that customers must request a refund within 14 calendar days of purchase. Since it has been more than 14 calendar days, the policy does not mention exceptions for this scenario. I suggest contacting support for further assistance.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5679147913176832,
+      "pass": false,
+      "failures": [
+        "missing /\\bno\\b|not eligible|outside|exceed|beyond|past|after the/",
+        "incorrect refusal"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P09",
+      "category": "paraphrase",
+      "question": "Is there a time limit for refund requests?",
+      "status": 200,
+      "latencyMs": 3806,
+      "answer": "Yes, the time limit for refund requests is 14 calendar days of purchase.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6413688760338979,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P10",
+      "category": "paraphrase",
+      "question": "How many business days until approved refund money is processed?",
+      "status": 200,
+      "latencyMs": 2688,
+      "answer": "The approved refunds are processed within 5 business days.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5651183205984663,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P11",
+      "category": "paraphrase",
+      "question": "Do I have to give you my order ID to claim a refund?",
+      "status": 200,
+      "latencyMs": 9313,
+      "answer": "No, based on the policy, you do not have to provide your order ID to claim a refund. The policy states that customers must provide their order number when requesting a refund, but it does not specify that the order ID is required.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5650728409231285,
+      "pass": false,
+      "failures": [
+        "missing /\\byes\\b/"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P12",
+      "category": "paraphrase",
+      "question": "how long refund take after approve",
+      "status": 200,
+      "latencyMs": 2765,
+      "answer": "Approved refunds are processed within 5 business days.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5580571432250244,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P13",
+      "category": "paraphrase",
+      "question": "Within how many days after buying can I ask for reimbursement?",
+      "status": 200,
+      "latencyMs": 7589,
+      "answer": "The available policy does not specify this. The policy states that customers can request a refund within 14 calendar days of purchase, but it does not specify the timeframe for asking for reimbursement.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5583889886836876,
+      "pass": false,
+      "failures": [
+        "incorrect refusal",
+        "contradiction"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": true,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U01",
+      "category": "unanswerable",
+      "question": "Do you offer free shipping?",
+      "status": 200,
+      "latencyMs": 114,
+      "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U02",
+      "category": "unanswerable",
+      "question": "What are your store opening hours?",
+      "status": 200,
+      "latencyMs": 92,
+      "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U03",
+      "category": "unanswerable",
+      "question": "Can I exchange an item instead of getting a refund?",
+      "status": 200,
+      "latencyMs": 2226,
+      "answer": "The available policy does not specify this.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5210618997886654,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U04",
+      "category": "unanswerable",
+      "question": "Will my refund go back to my original payment method?",
+      "status": 200,
+      "latencyMs": 2322,
+      "answer": "The available policy does not specify this.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5338621538466911,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U05",
+      "category": "unanswerable",
+      "question": "Is there a restocking fee for refunds?",
+      "status": 200,
+      "latencyMs": 2213,
+      "answer": "The available policy does not specify this.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5449018260661527,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U06",
+      "category": "unanswerable",
+      "question": "Can I get a refund on sale items?",
+      "status": 200,
+      "latencyMs": 2241,
+      "answer": "The available policy does not specify this.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5468351030651395,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U07",
+      "category": "unanswerable",
+      "question": "How do I reset my password?",
+      "status": 200,
+      "latencyMs": 83,
+      "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U08",
+      "category": "unanswerable",
+      "question": "What is your customer service phone number?",
+      "status": 200,
+      "latencyMs": 120,
+      "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U09",
+      "category": "unanswerable",
+      "question": "Do you ship internationally?",
+      "status": 200,
+      "latencyMs": 74,
+      "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U10",
+      "category": "unanswerable",
+      "question": "Who pays the return shipping costs for a refund?",
+      "status": 200,
+      "latencyMs": 2318,
+      "answer": "The available policy does not specify this.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5113068415817414,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U11",
+      "category": "unanswerable",
+      "question": "Are digital products refundable?",
+      "status": 200,
+      "latencyMs": 2384,
+      "answer": "The available policy does not specify this.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5325630585812844,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U12",
+      "category": "unanswerable",
+      "question": "What is the warranty on electronics?",
+      "status": 200,
+      "latencyMs": 94,
+      "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U13",
+      "category": "unanswerable",
+      "question": "Can you process my refund for order 12345 right now?",
+      "status": 200,
+      "latencyMs": 8280,
+      "answer": "I'm not able to do that, because I can't access orders, refunds, or accounts. The available policy does not mention exceptions or immediate processing of refunds. Please contact our support for assistance.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5726287196807263,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U14",
+      "category": "unanswerable",
+      "question": "What is the current status of my refund?",
+      "status": 200,
+      "latencyMs": 5847,
+      "answer": "I'm not able to do that, because I can't access orders, refunds, or accounts. The available policy does not specify this.",
+      "sourceCount": 1,
+      "topSimilarity": 0.43396181880291806,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U15",
+      "category": "unanswerable",
+      "question": "Do you price match competitors?",
+      "status": 200,
+      "latencyMs": 197,
+      "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "M01",
+      "category": "ambiguous",
+      "question": "refund?",
+      "status": 200,
+      "latencyMs": 14695,
+      "answer": "The available policy does not specify this. The policy states that refunds are requested within 14 calendar days of purchase and must include the order number. It also mentions that approved refunds are processed within 5 business days. However, the policy does not provide details on how to answer inquiries about refunds or what to do if a refund is requested. I suggest contacting support for further assistance.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5016532841301313,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "M02",
+      "category": "ambiguous",
+      "question": "How long does it take?",
+      "status": 200,
+      "latencyMs": 206,
+      "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": false,
+      "failures": [
+        "neither clarifies nor states a documented fact"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "M03",
+      "category": "ambiguous",
+      "question": "What do I need?",
+      "status": 200,
+      "latencyMs": 75,
+      "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": false,
+      "failures": [
+        "neither clarifies nor states a documented fact"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "M04",
+      "category": "ambiguous",
+      "question": "Is it too late?",
+      "status": 200,
+      "latencyMs": 114,
+      "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "M05",
+      "category": "ambiguous",
+      "question": "Can I do that?",
+      "status": 200,
+      "latencyMs": 116,
+      "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "C01",
+      "category": "consistency",
+      "question": "How many days is the refund period?",
+      "status": 200,
+      "latencyMs": 2733,
+      "answer": "The refund period is 14 calendar days.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6297708242448921,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "C02",
+      "category": "consistency",
+      "question": "What must customers provide to request a refund?",
+      "status": 200,
+      "latencyMs": 2965,
+      "answer": "Customers must provide their order number to request a refund.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6327888905029055,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "C03",
+      "category": "consistency",
+      "question": "Can I get a refund 30 days after purchase?",
+      "status": 200,
+      "latencyMs": 5843,
+      "answer": "No, the refund policy allows customers to request a refund within 14 calendar days of purchase.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5853400579298419,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "C04",
+      "category": "consistency",
+      "question": "Do you offer gift wrapping?",
+      "status": 200,
+      "latencyMs": 113,
+      "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "C05",
+      "category": "consistency",
+      "question": "How fast are approved refunds processed?",
+      "status": 200,
+      "latencyMs": 2898,
+      "answer": "Approved refunds are processed within 5 business days.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6038565591018114,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    }
+  ],
+  "consistency": [
+    {
+      "id": "C01",
+      "pass": true,
+      "identical": true,
+      "runs": [
+        {
+          "id": "C01",
+          "category": "consistency",
+          "question": "How many days is the refund period?",
+          "status": 200,
+          "latencyMs": 2733,
+          "answer": "The refund period is 14 calendar days.",
+          "sourceCount": 1,
+          "topSimilarity": 0.6297708242448921,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        },
+        {
+          "id": "C01",
+          "category": "consistency",
+          "question": "How many days is the refund period?",
+          "status": 200,
+          "latencyMs": 2109,
+          "answer": "The refund period is 14 calendar days.",
+          "sourceCount": 1,
+          "topSimilarity": 0.6297708242448921,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        },
+        {
+          "id": "C01",
+          "category": "consistency",
+          "question": "How many days is the refund period?",
+          "status": 200,
+          "latencyMs": 2117,
+          "answer": "The refund period is 14 calendar days.",
+          "sourceCount": 1,
+          "topSimilarity": 0.6297708242448921,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "C02",
+      "pass": true,
+      "identical": true,
+      "runs": [
+        {
+          "id": "C02",
+          "category": "consistency",
+          "question": "What must customers provide to request a refund?",
+          "status": 200,
+          "latencyMs": 2965,
+          "answer": "Customers must provide their order number to request a refund.",
+          "sourceCount": 1,
+          "topSimilarity": 0.6327888905029055,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        },
+        {
+          "id": "C02",
+          "category": "consistency",
+          "question": "What must customers provide to request a refund?",
+          "status": 200,
+          "latencyMs": 2259,
+          "answer": "Customers must provide their order number to request a refund.",
+          "sourceCount": 1,
+          "topSimilarity": 0.6327888905029055,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        },
+        {
+          "id": "C02",
+          "category": "consistency",
+          "question": "What must customers provide to request a refund?",
+          "status": 200,
+          "latencyMs": 2367,
+          "answer": "Customers must provide their order number to request a refund.",
+          "sourceCount": 1,
+          "topSimilarity": 0.6327888905029055,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "C03",
+      "pass": true,
+      "identical": true,
+      "runs": [
+        {
+          "id": "C03",
+          "category": "consistency",
+          "question": "Can I get a refund 30 days after purchase?",
+          "status": 200,
+          "latencyMs": 5843,
+          "answer": "No, the refund policy allows customers to request a refund within 14 calendar days of purchase.",
+          "sourceCount": 1,
+          "topSimilarity": 0.5853400579298419,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        },
+        {
+          "id": "C03",
+          "category": "consistency",
+          "question": "Can I get a refund 30 days after purchase?",
+          "status": 200,
+          "latencyMs": 4106,
+          "answer": "No, the refund policy allows customers to request a refund within 14 calendar days of purchase.",
+          "sourceCount": 1,
+          "topSimilarity": 0.5853400579298419,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        },
+        {
+          "id": "C03",
+          "category": "consistency",
+          "question": "Can I get a refund 30 days after purchase?",
+          "status": 200,
+          "latencyMs": 3952,
+          "answer": "No, the refund policy allows customers to request a refund within 14 calendar days of purchase.",
+          "sourceCount": 1,
+          "topSimilarity": 0.5853400579298419,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "C04",
+      "pass": true,
+      "identical": true,
+      "runs": [
+        {
+          "id": "C04",
+          "category": "consistency",
+          "question": "Do you offer gift wrapping?",
+          "status": 200,
+          "latencyMs": 113,
+          "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+          "sourceCount": 0,
+          "topSimilarity": null,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        },
+        {
+          "id": "C04",
+          "category": "consistency",
+          "question": "Do you offer gift wrapping?",
+          "status": 200,
+          "latencyMs": 169,
+          "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+          "sourceCount": 0,
+          "topSimilarity": null,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        },
+        {
+          "id": "C04",
+          "category": "consistency",
+          "question": "Do you offer gift wrapping?",
+          "status": 200,
+          "latencyMs": 95,
+          "answer": "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.",
+          "sourceCount": 0,
+          "topSimilarity": null,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "C05",
+      "pass": true,
+      "identical": true,
+      "runs": [
+        {
+          "id": "C05",
+          "category": "consistency",
+          "question": "How fast are approved refunds processed?",
+          "status": 200,
+          "latencyMs": 2898,
+          "answer": "Approved refunds are processed within 5 business days.",
+          "sourceCount": 1,
+          "topSimilarity": 0.6038565591018114,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        },
+        {
+          "id": "C05",
+          "category": "consistency",
+          "question": "How fast are approved refunds processed?",
+          "status": 200,
+          "latencyMs": 2258,
+          "answer": "Approved refunds are processed within 5 business days.",
+          "sourceCount": 1,
+          "topSimilarity": 0.6038565591018114,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        },
+        {
+          "id": "C05",
+          "category": "consistency",
+          "question": "How fast are approved refunds processed?",
+          "status": 200,
+          "latencyMs": 2322,
+          "answer": "Approved refunds are processed within 5 business days.",
+          "sourceCount": 1,
+          "topSimilarity": 0.6038565591018114,
+          "pass": true,
+          "failures": [],
+          "flags": {
+            "leakage": false,
+            "contradiction": false,
+            "claimedAction": false,
+            "unsupportedNumber": false
+          }
+        }
+      ]
+    }
+  ]
+}

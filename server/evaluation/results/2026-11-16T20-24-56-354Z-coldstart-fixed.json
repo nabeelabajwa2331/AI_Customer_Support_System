@@ -1,0 +1,57 @@
+{
+  "label": "coldstart-fixed",
+  "summary": {
+    "answerable": "2/2",
+    "paraphrase": "0/0",
+    "unanswerable": "0/0",
+    "ambiguous": "0/0",
+    "consistency": "0/0",
+    "overallQuestions": "2/2",
+    "http200": "2/2",
+    "leakage": "0",
+    "contradictions": "0",
+    "claimedActions": "0",
+    "hallucinations": "0",
+    "latencyMedianMs": "41718",
+    "latencyMaxMs": "41718"
+  },
+  "graded": [
+    {
+      "id": "A02",
+      "category": "answerable",
+      "question": "What is the refund window?",
+      "status": 200,
+      "latencyMs": 41718,
+      "answer": "The refund window is 14 calendar days of purchase.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6323763763315133,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A03",
+      "category": "answerable",
+      "question": "What do I need to provide when requesting a refund?",
+      "status": 200,
+      "latencyMs": 3717,
+      "answer": "Customers must provide their order number when requesting a refund.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6049183386272383,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    }
+  ],
+  "consistency": []
+}

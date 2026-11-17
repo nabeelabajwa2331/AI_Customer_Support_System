@@ -1,0 +1,57 @@
+{
+  "label": "startup-after-warmup",
+  "summary": {
+    "answerable": "1/1",
+    "paraphrase": "0/0",
+    "unanswerable": "1/1",
+    "ambiguous": "0/0",
+    "consistency": "0/0",
+    "overallQuestions": "2/2",
+    "http200": "2/2",
+    "leakage": "0",
+    "contradictions": "0",
+    "claimedActions": "0",
+    "hallucinations": "0",
+    "latencyMedianMs": "7725",
+    "latencyMaxMs": "7725"
+  },
+  "graded": [
+    {
+      "id": "A03",
+      "category": "answerable",
+      "question": "What do I need to provide when requesting a refund?",
+      "status": 200,
+      "latencyMs": 3247,
+      "answer": "Customers must provide their order number when requesting a refund.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6049183386272383,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U13",
+      "category": "unanswerable",
+      "question": "Can you process my refund for order 12345 right now?",
+      "status": 200,
+      "latencyMs": 7725,
+      "answer": "I'm not able to do that, because I can't access orders, refunds, or accounts. This policy does not mention exceptions and suggests contacting support for assistance.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5726287196807263,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    }
+  ],
+  "consistency": []
+}

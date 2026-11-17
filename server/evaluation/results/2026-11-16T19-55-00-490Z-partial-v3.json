@@ -1,0 +1,284 @@
+{
+  "label": "partial-v3",
+  "summary": {
+    "answerable": "3/6",
+    "paraphrase": "1/3",
+    "unanswerable": "4/4",
+    "ambiguous": "1/1",
+    "consistency": "0/0",
+    "overallQuestions": "9/14",
+    "http200": "14/14",
+    "leakage": "2",
+    "contradictions": "0",
+    "claimedActions": "0",
+    "hallucinations": "1",
+    "latencyMedianMs": "9215",
+    "latencyMaxMs": "26012"
+  },
+  "graded": [
+    {
+      "id": "A01",
+      "category": "answerable",
+      "question": "How many days do I have to request a refund?",
+      "status": 200,
+      "latencyMs": 26012,
+      "answer": "You have 14 calendar days to request a refund. This is based on the policy stated in the reference material.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6685753273980303,
+      "pass": false,
+      "failures": [
+        "prompt leakage"
+      ],
+      "flags": {
+        "leakage": true,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A05",
+      "category": "answerable",
+      "question": "Can I request a refund 10 days after purchase?",
+      "status": 200,
+      "latencyMs": 10732,
+      "answer": "No, you cannot request a refund 10 days after purchase. The refund policy allows customers to request a refund within 14 calendar days of purchase.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5826416362907316,
+      "pass": false,
+      "failures": [
+        "missing /\\byes\\b/"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A06",
+      "category": "answerable",
+      "question": "Can I request a refund 20 days after I bought something?",
+      "status": 200,
+      "latencyMs": 7370,
+      "answer": "No, you cannot request a refund 20 days after your purchase. The refund policy allows requests within 14 calendar days of purchase.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5812555994848995,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A07",
+      "category": "answerable",
+      "question": "Is the refund window counted in calendar days or business days?",
+      "status": 200,
+      "latencyMs": 7335,
+      "answer": "The refund window is counted in calendar days. According to the policy, customers must request a refund within 14 calendar days of purchase.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5574837698724692,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A08",
+      "category": "answerable",
+      "question": "Do I need my order number to get a refund?",
+      "status": 200,
+      "latencyMs": 6474,
+      "answer": "Yes, you need your order number to get a refund. According to the policy, customers must provide their order number when requesting a refund.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5870616228435599,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "A09",
+      "category": "answerable",
+      "question": "Are approved refunds processed within 5 business days?",
+      "status": 200,
+      "latencyMs": 6139,
+      "answer": "Yes, approved refunds are processed within 5 business days. This is based on the policy stated in the reference material.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6402009416465022,
+      "pass": false,
+      "failures": [
+        "prompt leakage"
+      ],
+      "flags": {
+        "leakage": true,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P07",
+      "category": "paraphrase",
+      "question": "I purchased an item 3 days ago and changed my mind. Can I get reimbursed?",
+      "status": 200,
+      "latencyMs": 10279,
+      "answer": "No, you cannot get reimbursed because the refund policy requires you to request a refund within 14 calendar days of purchase, and you have exceeded this time limit by 11 days.",
+      "sourceCount": 1,
+      "topSimilarity": 0.49958604569274456,
+      "pass": false,
+      "failures": [
+        "number not in the knowledge base",
+        "missing /\\byes\\b/"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": true
+      }
+    },
+    {
+      "id": "P08",
+      "category": "paraphrase",
+      "question": "It's been a month since my purchase. Am I still eligible for a refund?",
+      "status": 200,
+      "latencyMs": 10815,
+      "answer": "No, you are not eligible for a refund. The refund policy allows customers to request a refund within 14 calendar days of purchase. Since it has been a month since your purchase, the time limit has expired.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5679147913176832,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "P11",
+      "category": "paraphrase",
+      "question": "Do I have to give you my order ID to claim a refund?",
+      "status": 200,
+      "latencyMs": 7527,
+      "answer": "No, you do not have to give your order ID to claim a refund. According to the policy, customers are not required to provide their order number when requesting a refund.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5650728409231285,
+      "pass": false,
+      "failures": [
+        "missing /\\byes\\b/"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U03",
+      "category": "unanswerable",
+      "question": "Can I exchange an item instead of getting a refund?",
+      "status": 200,
+      "latencyMs": 8690,
+      "answer": "The available policy does not specify this. This policy covers refund requests within 14 calendar days of purchase and requires the order number for a refund request. It does not mention the option to exchange an item.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5210618997886654,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U06",
+      "category": "unanswerable",
+      "question": "Can I get a refund on sale items?",
+      "status": 200,
+      "latencyMs": 9215,
+      "answer": "The available policy does not specify this. This policy applies to all purchases, including sale items, and allows customers to request a refund within 14 calendar days of purchase. However, the policy does not mention whether refunds are available for sale items specifically.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5468351030651395,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U13",
+      "category": "unanswerable",
+      "question": "Can you process my refund for order 12345 right now?",
+      "status": 200,
+      "latencyMs": 11063,
+      "answer": "I'm not able to process your refund, because I can't access orders, refunds, or accounts. This policy states that refunds are processed within 5 business days of an approved request, and the document specifies that requests must be made within 14 calendar days of purchase.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5726287196807263,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "U14",
+      "category": "unanswerable",
+      "question": "What is the current status of my refund?",
+      "status": 200,
+      "latencyMs": 10359,
+      "answer": "I'm not able to do that, because I can't access refunds. This policy states that approved refunds are processed within 5 business days. However, I cannot provide the current status of your refund as I do not have access to such information.",
+      "sourceCount": 1,
+      "topSimilarity": 0.43396181880291806,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    },
+    {
+      "id": "M01",
+      "category": "ambiguous",
+      "question": "refund?",
+      "status": 200,
+      "latencyMs": 7756,
+      "answer": "I'm not able to do that, because I can't access orders, refunds, or accounts. This policy states that customers must request a refund within 14 calendar days of purchase and provide their order number.",
+      "sourceCount": 1,
+      "topSimilarity": 0.5016532841301313,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    }
+  ],
+  "consistency": []
+}

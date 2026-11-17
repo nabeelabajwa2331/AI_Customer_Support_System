@@ -1,0 +1,42 @@
+{
+  "label": "coldstart-current",
+  "summary": {
+    "answerable": "0/1",
+    "paraphrase": "0/0",
+    "unanswerable": "0/0",
+    "ambiguous": "0/0",
+    "consistency": "0/0",
+    "overallQuestions": "0/1",
+    "http200": "0/1",
+    "leakage": "0",
+    "contradictions": "0",
+    "claimedActions": "0",
+    "hallucinations": "0",
+    "latencyMedianMs": "33605",
+    "latencyMaxMs": "33605"
+  },
+  "graded": [
+    {
+      "id": "A02",
+      "category": "answerable",
+      "question": "What is the refund window?",
+      "status": 502,
+      "latencyMs": 33605,
+      "answer": "Could not generate a chat response.",
+      "sourceCount": 0,
+      "topSimilarity": null,
+      "pass": false,
+      "failures": [
+        "HTTP 502",
+        "missing /\\b14\\b/"
+      ],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    }
+  ],
+  "consistency": []
+}

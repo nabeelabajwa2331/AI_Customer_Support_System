@@ -1,0 +1,39 @@
+{
+  "label": "warm-current",
+  "summary": {
+    "answerable": "1/1",
+    "paraphrase": "0/0",
+    "unanswerable": "0/0",
+    "ambiguous": "0/0",
+    "consistency": "0/0",
+    "overallQuestions": "1/1",
+    "http200": "1/1",
+    "leakage": "0",
+    "contradictions": "0",
+    "claimedActions": "0",
+    "hallucinations": "0",
+    "latencyMedianMs": "2097",
+    "latencyMaxMs": "2097"
+  },
+  "graded": [
+    {
+      "id": "A02",
+      "category": "answerable",
+      "question": "What is the refund window?",
+      "status": 200,
+      "latencyMs": 2097,
+      "answer": "The refund window is 14 calendar days of purchase.",
+      "sourceCount": 1,
+      "topSimilarity": 0.6323763763315133,
+      "pass": true,
+      "failures": [],
+      "flags": {
+        "leakage": false,
+        "contradiction": false,
+        "claimedAction": false,
+        "unsupportedNumber": false
+      }
+    }
+  ],
+  "consistency": []
+}
