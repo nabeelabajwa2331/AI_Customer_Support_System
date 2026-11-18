@@ -1,4 +1,6 @@
-
+// Loads server/.env for the remaining settings. Variables already set in the
+// shell (such as DATABASE_URL pointing at the production database) take priority.
+import 'dotenv/config';
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 

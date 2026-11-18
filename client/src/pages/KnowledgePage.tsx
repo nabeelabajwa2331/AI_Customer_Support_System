@@ -74,7 +74,7 @@ function Dropzone({ uploading, onFile }: { uploading: string | null; onFile: (fi
       {uploading ? (
         <div>
           <strong>Indexing “{uploading}”</strong>
-          <p className="muted small">Each section is embedded by the local model. Long files can take a few minutes.</p>
+          <p className="muted small">Each section is embedded for search. Long files can take a few minutes.</p>
         </div>
       ) : (
         <div>

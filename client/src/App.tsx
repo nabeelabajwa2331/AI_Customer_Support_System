@@ -15,6 +15,7 @@ import { LoginPage } from './pages/LoginPage';
 import { OverviewPage } from './pages/OverviewPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { UsersPage } from './pages/UsersPage';
 import { ThemeProvider } from './theme/ThemeContext';
 
 /** "/app" goes to the right workspace for the signed-in role. */
@@ -68,6 +69,14 @@ export function AppRoutes() {
           element={
             <RequireAuth roles={STAFF_ROLES}>
               <KnowledgePage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="users"
+          element={
+            <RequireAuth roles={['ADMIN']}>
+              <UsersPage />
             </RequireAuth>
           }
         />

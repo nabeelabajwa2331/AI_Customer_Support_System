@@ -6,11 +6,21 @@ interface ConfirmDialogProps {
   children: ReactNode;
   confirmLabel: string;
   busy?: boolean;
+  /** Destructive actions are red; other confirmations use the primary colour. */
+  tone?: 'danger' | 'primary';
   onConfirm: () => void;
   onCancel: () => void;
 }
 
-export function ConfirmDialog({ title, children, confirmLabel, busy, onConfirm, onCancel }: ConfirmDialogProps) {
+export function ConfirmDialog({
+  title,
+  children,
+  confirmLabel,
+  busy,
+  tone = 'danger',
+  onConfirm,
+  onCancel,
+}: ConfirmDialogProps) {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -37,7 +47,7 @@ export function ConfirmDialog({ title, children, confirmLabel, busy, onConfirm, 
           <button ref={cancelRef} type="button" className="button button-secondary" onClick={onCancel} disabled={busy}>
             Cancel
           </button>
-          <button type="button" className="button button-danger" onClick={onConfirm} disabled={busy}>
+          <button type="button" className={`button button-${tone}`} onClick={onConfirm} disabled={busy}>
             {confirmLabel}
           </button>
         </div>

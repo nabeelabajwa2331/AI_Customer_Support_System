@@ -40,10 +40,17 @@ vi.mock('../src/knowledge/knowledge.repository.js', () => ({
   saveKnowledgeDocument: vi.fn(),
 }));
 
+const { chatLogCreateMock } = vi.hoisted(() => ({
+  chatLogCreateMock: vi.fn(async (..._args: unknown[]) => ({})),
+}));
+
 vi.mock('../src/lib/prisma.js', () => ({
   prisma: {
     user: {
       findUnique: findUniqueMock,
+    },
+    chatLog: {
+      create: chatLogCreateMock,
     },
   },
 }));
@@ -92,6 +99,8 @@ beforeEach(() => {
   answerCustomerQuestionMock.mockReset();
   verifyAccessTokenMock.mockReset();
   findUniqueMock.mockReset();
+  chatLogCreateMock.mockReset();
+  chatLogCreateMock.mockResolvedValue({});
 
   answerCustomerQuestionMock.mockResolvedValue({ answer, sources });
   verifyAccessTokenMock.mockResolvedValue({
@@ -180,5 +189,54 @@ describe('POST /api/chat', () => {
       message: error.message,
     });
     expect(res.body).not.toHaveProperty('stack');
+  });
+});
+
+describe('chat logging', () => {
+  it('records the question, outcome, cited documents and latency', async () => {
+    await ask({ question: 'How do refunds work?' });
+
+    expect(chatLogCreateMock).toHaveBeenCalledTimes(1);
+    const data = (chatLogCreateMock.mock.calls[0]![0] as { data: Record<string, unknown> }).data;
+    expect(data).toMatchObject({
+      userId: 'user-1',
+      question: 'How do refunds work?',
+      answer,
+      outcome: 'ANSWERED',
+      sourceCount: 1,
+      topSimilarity: 0.75,
+      documentIds: ['document-1'],
+    });
+    expect(data.latencyMs).toEqual(expect.any(Number));
+  });
+
+  it('records a failed request as FAILED and still returns the error', async () => {
+    answerCustomerQuestionMock.mockRejectedValue(
+      new AppError(502, 'CHAT_GENERATION_FAILED', 'Could not generate a chat response.'),
+    );
+
+    const res = await ask({ question: 'How do refunds work?' });
+
+    expect(res.status).toBe(502);
+    const data = (chatLogCreateMock.mock.calls[0]![0] as { data: Record<string, unknown> }).data;
+    expect(data).toMatchObject({ outcome: 'FAILED', answer: null, sourceCount: 0 });
+  });
+
+  it('still answers the customer when logging fails', async () => {
+    chatLogCreateMock.mockRejectedValue(new Error('database unavailable'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    const res = await ask({ question: 'How do refunds work?' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.answer).toBe(answer);
+    errorSpy.mockRestore();
+  });
+
+  it('does not log rejected (invalid or unauthenticated) requests', async () => {
+    await ask({ question: '' });
+    await request(app).post('/api/chat').send({ question: 'Hi' });
+
+    expect(chatLogCreateMock).not.toHaveBeenCalled();
   });
 });

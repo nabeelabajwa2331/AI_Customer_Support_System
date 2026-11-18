@@ -34,6 +34,7 @@ model User {
 
   refreshTokens      RefreshToken[]
   knowledgeDocuments KnowledgeDocument[]
+  chatLogs           ChatLog[]
 
   @@index([role])
   @@map("users")
@@ -89,4 +90,36 @@ model DocumentChunk {
 
   @@unique([documentId, chunkIndex])
   @@map("document_chunks")
+}
+
+// How a chat question was handled; drives the staff analytics.
+enum ChatOutcome {
+  ANSWERED // the assistant answered from the knowledge base
+  NOT_SPECIFIED // related material exists but does not answer the question
+  NO_EVIDENCE // nothing relevant passed the similarity gate
+  ACTION_UNAVAILABLE // the customer asked for an action the assistant cannot perform
+  FAILED // retrieval or generation failed
+}
+
+// One row per question asked in the assistant, for staff analytics.
+model ChatLog {
+  id            String      @id @default(uuid()) @db.Uuid
+  // Kept when the account is deleted (set to null) so totals stay correct.
+  userId        String?     @map("user_id") @db.Uuid
+  question      String      @db.Text
+  answer        String?     @db.Text
+  outcome       ChatOutcome
+  sourceCount   Int         @default(0) @map("source_count")
+  topSimilarity Float?      @map("top_similarity")
+  // Documents cited by the answer (no foreign key: documents may be deleted later).
+  documentIds   String[]    @default([]) @map("document_ids") @db.Uuid
+  latencyMs     Int         @map("latency_ms")
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([outcome, createdAt])
+  @@index([userId])
+  @@map("chat_logs")
 }

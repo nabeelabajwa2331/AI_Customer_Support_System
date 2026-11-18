@@ -73,6 +73,44 @@ export interface SearchResult {
   document: ChatSource['document'];
 }
 
+export interface AdminUser extends User {
+  questionCount: number;
+  documentCount: number;
+}
+
+export interface UserList {
+  users: AdminUser[];
+  total: number;
+  page: number;
+  pageSize: number;
+  roleCounts: Record<Role, number>;
+}
+
+export type ChatOutcome = 'ANSWERED' | 'NOT_SPECIFIED' | 'NO_EVIDENCE' | 'ACTION_UNAVAILABLE' | 'FAILED';
+
+export interface ChatAnalytics {
+  days: number;
+  since: string;
+  totals: {
+    questions: number;
+    byOutcome: Record<ChatOutcome, number>;
+    answerRate: number | null;
+    averageLatencyMs: number | null;
+    activeUsers: number;
+  };
+  daily: Array<{ date: string; questions: number; unanswered: number }>;
+  recentUnanswered: Array<{
+    id: string;
+    question: string;
+    outcome: ChatOutcome;
+    createdAt: string;
+    user: { id: string; name: string } | null;
+  }>;
+  topDocuments: Array<{ id: string; title: string; citations: number }>;
+  /** Present for administrators only. */
+  users?: { total: number; newInPeriod: number };
+}
+
 export interface HealthStatus {
   success: boolean;
   service: string;

@@ -1,11 +1,15 @@
 import type {
+  AdminUser,
   AuthTokens,
+  ChatAnalytics,
   ChatAnswer,
   HealthStatus,
   KnowledgeDocument,
+  Role,
   SearchResult,
   UploadedDocument,
   User,
+  UserList,
 } from '../types/api';
 
 // Locally the Vite proxy serves /api. In production (Vercel) the API lives on
@@ -221,4 +225,24 @@ export const api = {
       method: 'POST',
       body: { query, topK },
     }).then((b) => b.results),
+
+  listUsers: (params: { search?: string; role?: Role; page?: number; pageSize?: number } = {}) => {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== '') query.set(key, String(value));
+    }
+    const suffix = query.toString();
+    return request<UserList>(`/admin/users${suffix ? `?${suffix}` : ''}`);
+  },
+
+  updateUserRole: (id: string, role: Role) =>
+    request<{ user: AdminUser }>(`/admin/users/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: { role },
+    }).then((b) => b.user),
+
+  deleteUser: (id: string) => request(`/admin/users/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  analytics: (days = 30) =>
+    request<{ analytics: ChatAnalytics }>(`/admin/analytics?days=${days}`).then((b) => b.analytics),
 };

@@ -93,15 +93,115 @@ describe('routing and roles', () => {
     expect(screen.queryByText('Support Tickets')).not.toBeInTheDocument();
   });
 
-  it('shows staff pages to an ADMIN, and no navigation for features that do not exist yet', async () => {
-    mockBackend('ADMIN', { '/knowledge/documents': { documents: [] }, '/health': { status: 'ok' } });
+  it('shows an ADMIN the analytics dashboard, user totals and the Users page link', async () => {
+    mockBackend('ADMIN', {
+      '/knowledge/documents': { documents: [] },
+      '/health': { status: 'ok' },
+      '/admin/analytics?days=30': { analytics: ANALYTICS },
+    });
     renderAt('/overview');
 
     expect(await screen.findByRole('heading', { name: /Good (morning|afternoon|evening), Ada/ })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Knowledge Base/ })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /Users/ })[0]).toHaveAttribute('href', '/users');
     expect(screen.queryByText('Support Tickets')).not.toBeInTheDocument();
 
-    await waitFor(() => expect(screen.getByText('Operational')).toBeInTheDocument());
+    expect(await screen.findByText('75%')).toBeInTheDocument(); // answer rate 3/4
+    expect(screen.getByText('Do you ship to the UK?')).toBeInTheDocument();
+    expect(screen.getByText('Total users')).toBeInTheDocument();
+    expect(screen.getByText('1.2 s')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Service operational')).toBeInTheDocument());
+  });
+
+  it('shows a SUPPORT_AGENT analytics but no user management', async () => {
+    const { users: _omit, ...agentView } = ANALYTICS;
+    mockBackend('SUPPORT_AGENT', {
+      '/knowledge/documents': { documents: [] },
+      '/health': { status: 'ok' },
+      '/admin/analytics?days=30': { analytics: agentView },
+    });
+    renderAt('/overview');
+
+    expect(await screen.findByText('75%')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /^Users$/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('Total users')).not.toBeInTheDocument();
+  });
+
+  it('keeps a SUPPORT_AGENT out of the Users page', async () => {
+    mockBackend('SUPPORT_AGENT');
+    renderAt('/users');
+
+    expect(await screen.findByRole('heading', { name: 'AI Assistant', level: 1 })).toBeInTheDocument();
+  });
+});
+
+const ANALYTICS = {
+  days: 30,
+  since: '2026-10-20T00:00:00.000Z',
+  totals: {
+    questions: 4,
+    byOutcome: { ANSWERED: 3, NOT_SPECIFIED: 0, NO_EVIDENCE: 1, ACTION_UNAVAILABLE: 0, FAILED: 0 },
+    answerRate: 0.75,
+    averageLatencyMs: 1234,
+    activeUsers: 2,
+  },
+  daily: [
+    { date: '2026-11-17', questions: 1, unanswered: 0 },
+    { date: '2026-11-18', questions: 3, unanswered: 1 },
+  ],
+  recentUnanswered: [
+    {
+      id: 'log-1',
+      question: 'Do you ship to the UK?',
+      outcome: 'NO_EVIDENCE',
+      createdAt: '2026-11-18T10:00:00.000Z',
+      user: { id: 'u2', name: 'Grace Hopper' },
+    },
+  ],
+  topDocuments: [{ id: 'd1', title: 'sample-support-policy.md', citations: 3 }],
+  users: { total: 5, newInPeriod: 2 },
+};
+
+describe('users page', () => {
+  const LIST = {
+    users: [
+      { id: 'u1', name: 'Ada Lovelace', email: 'ada@example.com', role: 'ADMIN', createdAt: '2026-11-01T00:00:00Z', updatedAt: '', questionCount: 0, documentCount: 1 },
+      { id: 'u2', name: 'Grace Hopper', email: 'grace@example.com', role: 'CUSTOMER', createdAt: '2026-11-02T00:00:00Z', updatedAt: '', questionCount: 4, documentCount: 0 },
+    ],
+    total: 2,
+    page: 1,
+    pageSize: 20,
+    roleCounts: { CUSTOMER: 1, SUPPORT_AGENT: 0, ADMIN: 1 },
+  };
+
+  it('lists users, locks the admin’s own row, and changes a role after confirmation', async () => {
+    const fetchMock = mockBackend('ADMIN');
+    fetchMock.mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.endsWith('/auth/refresh')) return json(200, session('ADMIN'));
+      if (url.includes('/admin/users/u2') && init?.method === 'PATCH') {
+        return json(200, { user: { ...LIST.users[1], role: 'SUPPORT_AGENT' } });
+      }
+      if (url.includes('/admin/users')) return json(200, LIST);
+      return json(404, {});
+    });
+    renderAt('/users');
+
+    expect(await screen.findByText('grace@example.com')).toBeInTheDocument();
+    expect(screen.getByLabelText('Role for Ada Lovelace')).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Delete Ada Lovelace' })).not.toBeInTheDocument();
+
+    await userEvent.selectOptions(screen.getByLabelText('Role for Grace Hopper'), 'SUPPORT_AGENT');
+    expect(screen.getByRole('dialog')).toHaveTextContent('dashboard, analytics and knowledge base');
+    await userEvent.click(screen.getByRole('button', { name: 'Change role' }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/admin/users/u2'),
+        expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ role: 'SUPPORT_AGENT' }) }),
+      ),
+    );
+    expect(await screen.findByText('Role updated')).toBeInTheDocument();
   });
 });
 

@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { BookOpen, Bot, ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Settings, Sun, X } from 'lucide-react';
+import { BookOpen, Bot, ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Settings, Sun, Users, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
@@ -24,6 +24,7 @@ const NAV_SECTIONS: Array<{ title: string; items: NavItem[] }> = [
       { to: '/knowledge', label: 'Knowledge Base', icon: BookOpen, roles: STAFF_ROLES },
     ],
   },
+  { title: 'Administration', items: [{ to: '/users', label: 'Users', icon: Users, roles: ['ADMIN'] }] },
   { title: 'Account', items: [{ to: '/settings', label: 'Settings', icon: Settings }] },
 ];
 
