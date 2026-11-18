@@ -176,12 +176,12 @@ const FEATURES: Array<{ icon: LucideIcon; title: string; text: string }> = [
   {
     icon: UserCog,
     title: 'Roles built in',
-    text: 'Customers chat, agents review the knowledge base, admins manage content — each sees only what they need.',
+    text: 'Customers chat, agents see analytics and the knowledge base, admins also manage content and users.',
   },
   {
     icon: Cpu,
-    title: 'Private by design',
-    text: 'Runs on open models you host yourself, so conversations and documents stay on your infrastructure.',
+    title: 'Choose where the AI runs',
+    text: 'Use hosted models (Groq for answers, Google Gemini for search), or run open models on your own server with Ollama.',
   },
 ];
 
@@ -213,7 +213,7 @@ const FAQ = [
   },
   {
     q: 'Where does the AI run?',
-    a: 'On open-source models served by Ollama — a chat model plus an embedding model — so your data is not sent to a third-party AI service.',
+    a: 'On this site, Groq (Llama 3.1) writes the answers and Google Gemini powers document search, so questions and the relevant document passages are sent to those services — see the Privacy Policy. The same app can instead run entirely on your own server with open models served by Ollama.',
   },
 ];
 
@@ -338,7 +338,7 @@ export function LandingPage() {
                 <BadgeCheck size={15} aria-hidden="true" /> Source citations
               </li>
               <li>
-                <BadgeCheck size={15} aria-hidden="true" /> Self-hosted AI
+                <BadgeCheck size={15} aria-hidden="true" /> Unanswered-question insights
               </li>
               <li>
                 <BadgeCheck size={15} aria-hidden="true" /> Role-based access
@@ -365,7 +365,7 @@ export function LandingPage() {
         <div className="l-container l-strip-inner" data-reveal>
           <span>Built on</span>
           <strong>PostgreSQL + pgvector</strong>
-          <strong>Ollama</strong>
+          <strong>Groq + Gemini</strong>
           <strong>Express + TypeScript</strong>
           <strong>React</strong>
         </div>
@@ -426,7 +426,11 @@ export function LandingPage() {
           <div className="l-heading" data-reveal>
             <span className="l-eyebrow">Measured, not assumed</span>
             <h2>Tested against a fixed 50-question evaluation.</h2>
-            <p>Answerable, paraphrased, unanswerable and ambiguous questions, graded by fixed rules on a sample policy.</p>
+            <p>
+              Answerable, paraphrased, unanswerable and ambiguous questions, graded by fixed rules on a sample policy.
+              These results were measured with the self-hosted model (qwen2.5:3b); the hosted Groq model used on this
+              site has not been re-evaluated yet.
+            </p>
           </div>
           <div className="l-metrics" ref={metricsRef}>
             <Metric value={100} suffix="%" label="Answerable questions correct (12/12)" active={metricsInView} />

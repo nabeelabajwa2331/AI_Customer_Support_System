@@ -28,7 +28,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
               <Sparkles size={16} /> AI replies cite the documents they come from
             </li>
             <li>
-              <ShieldCheck size={16} /> Runs on local models; data stays on your server
+              <ShieldCheck size={16} /> Says so when the documents don’t cover a question
             </li>
           </ul>
         </div>

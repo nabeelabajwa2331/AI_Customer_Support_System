@@ -262,7 +262,7 @@ export function AssistantPage() {
                   </span>
                   {slow ? (
                     <p className="muted small">
-                      Still working. The first answer after a quiet period can take up to a minute while the model loads.
+                      Still working. The first answer after a quiet period can take up to a minute while the server starts.
                     </p>
                   ) : null}
                 </div>
