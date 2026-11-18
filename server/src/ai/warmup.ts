@@ -26,14 +26,23 @@ async function timed(label: string, task: () => Promise<unknown>): Promise<boole
  * warm-up only means the first request will be slower.
  */
 export async function warmUpModels(): Promise<{ embedding: boolean; chat: boolean }> {
+  // Hosted APIs have no cold start, and a warm-up call would spend quota.
+  const skipEmbedding = config.embeddingProvider === 'openai-compatible';
+  const skipChat = config.chatProvider === 'openai-compatible';
+  if (skipEmbedding && skipChat) return { embedding: true, chat: true };
+
   const chatClient = createOllamaClient({
     baseUrl: config.ollamaBaseUrl,
     timeoutMs: config.ollamaChatTimeoutMs,
   });
 
-  const embedding = await timed(`Embedding model "${config.ollamaEmbeddingModel}"`, () =>
-    generateEmbedding('warm-up'),
-  );
+  const embedding = skipEmbedding
+    ? true
+    : await timed(`Embedding model "${config.ollamaEmbeddingModel}"`, () =>
+        generateEmbedding('warm-up'),
+      );
+
+  if (skipChat) return { embedding, chat: true };
 
   const chat = await timed(`Chat model "${config.ollamaChatModel}"`, () =>
     chatClient.chat({

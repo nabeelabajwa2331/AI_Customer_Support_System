@@ -1,0 +1,53 @@
+# Render Blueprint: backend API + PostgreSQL (with pgvector).
+# Render dashboard -> New -> Blueprint -> select this repository.
+# Values marked `sync: false` are entered in the dashboard (never committed).
+services:
+  - type: web
+    name: support-desk-api
+    runtime: node
+    rootDir: server
+    plan: free
+    region: singapore
+    buildCommand: npm ci --include=dev && npx prisma generate && npm run build
+    # Applies pending migrations (creates the pgvector extension on first deploy).
+    startCommand: npx prisma migrate deploy && node dist/server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: support-desk-db
+          property: connectionString
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: TRUST_PROXY
+        value: '1'
+      # Hosted AI: Groq for chat, Gemini for 768-dim embeddings.
+      - key: CHAT_PROVIDER
+        value: openai-compatible
+      - key: CHAT_API_MODEL
+        value: llama-3.1-8b-instant
+      - key: CHAT_API_KEY
+        sync: false
+      - key: EMBEDDING_PROVIDER
+        value: openai-compatible
+      - key: EMBEDDING_API_MODEL
+        value: gemini-embedding-001
+      - key: EMBEDDING_API_KEY
+        sync: false
+      # The Vercel URL, e.g. https://support-desk.vercel.app (no trailing slash).
+      - key: CORS_ORIGINS
+        sync: false
+      # Optional: enables "Continue with Google".
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+databases:
+  - name: support-desk-db
+    plan: free
+    region: singapore
+    databaseName: ai_customer_support
+    postgresMajorVersion: '16'

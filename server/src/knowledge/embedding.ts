@@ -1,10 +1,7 @@
-import { createOllamaClient } from '../ai/ollama.client.js';
+import { createEmbeddingClient } from '../ai/providers.js';
 import { config } from '../config/env.js';
 
-const ollama = createOllamaClient({
-  baseUrl: config.ollamaBaseUrl,
-  timeoutMs: config.ollamaTimeoutMs,
-});
+const client = createEmbeddingClient();
 
 export async function generateEmbedding(text: string): Promise<number[]> {
   const normalizedText = text.trim();
@@ -13,8 +10,8 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     throw new Error('Cannot generate an embedding for empty text.');
   }
 
-  return ollama.embed(normalizedText, {
-    model: config.ollamaEmbeddingModel,
+  return client.embed(normalizedText, {
+    model: config.embeddingModel,
     dimensions: config.embeddingDimensions,
   });
 }

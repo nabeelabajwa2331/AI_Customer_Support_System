@@ -3,8 +3,8 @@ import { DEFAULT_RETRIEVAL_TOP_K, retrieveKnowledge } from '../knowledge/retriev
 import type { RetrievalResult } from '../knowledge/retrieval.js';
 import { AppError, validationFailed } from '../lib/errors.js';
 import { buildDurationChecks } from './duration-check.js';
-import { createOllamaClient } from './ollama.client.js';
 import type { OllamaChatMessage } from './ollama.client.js';
+import { createChatClient } from './providers.js';
 
 /**
  * Fixed sentence for "the material is related but does not answer this". A
@@ -13,7 +13,8 @@ import type { OllamaChatMessage } from './ollama.client.js';
 export const NOT_SPECIFIED_PHRASE = 'The available policy does not specify this.';
 
 /** Fixed opening for action requests; the assistant has no order or refund tools. */
-export const ACTION_UNAVAILABLE_PHRASE = "I'm not able to do that, because I can't access orders, refunds, or accounts.";
+export const ACTION_UNAVAILABLE_PHRASE =
+  "I'm not able to do that, because I can't access orders, refunds, or accounts.";
 
 /** Used when validation leaves nothing customer-facing (e.g. a bare label). */
 export const NOT_SPECIFIED_FALLBACK_ANSWER = `${NOT_SPECIFIED_PHRASE} Please contact support for clarification.`;
@@ -54,7 +55,10 @@ const SYSTEM_INSTRUCTION = [
 const LEAKED_LABEL_PATTERN = /^\s*(?:\*\*)?(?:STATED|NOT SPECIFIED|NOT COVERED)(?:\*\*)?\s*:?\s*/;
 
 function normalizeForComparison(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
 }
 
 // Sentences of the system prompt itself, used to detect verbatim leakage.
@@ -76,7 +80,7 @@ export function sanitizeModelAnswer(raw: string): string {
   let text = raw.trim();
 
   // Labels can be stacked ("NOT COVERED NOT SPECIFIED ...").
-  for (let previous = ''; previous !== text; ) {
+  for (let previous = ''; previous !== text;) {
     previous = text;
     text = text.replace(LEAKED_LABEL_PATTERN, '');
   }
@@ -103,10 +107,7 @@ const CHAT_TEMPERATURE = 0;
 export const NO_RELEVANT_EVIDENCE_ANSWER =
   "I couldn't find enough relevant information in the available knowledge base to answer that. Could you rephrase your question or add more detail? If you still need help, please contact support.";
 
-const ollama = createOllamaClient({
-  baseUrl: config.ollamaBaseUrl,
-  timeoutMs: config.ollamaChatTimeoutMs,
-});
+const chatClient = createChatClient();
 
 export interface ChatSource {
   chunkId: string;
@@ -247,14 +248,14 @@ export async function answerCustomerQuestion(question: string): Promise<ChatAnsw
   let answer: string;
 
   try {
-    answer = await ollama.chat({
-      model: config.ollamaChatModel,
+    answer = await chatClient.chat({
+      model: config.chatModel,
       messages,
       temperature: CHAT_TEMPERATURE,
     });
   } catch (error) {
     console.error(
-      `[chat] Ollama chat generation failed using model "${config.ollamaChatModel}": ${getErrorMessage(error)}`,
+      `[chat] ${config.chatProvider} chat generation failed using model "${config.chatModel}": ${getErrorMessage(error)}`,
     );
 
     throw new AppError(502, 'CHAT_GENERATION_FAILED', 'Could not generate a chat response.');

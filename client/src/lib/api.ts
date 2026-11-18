@@ -8,7 +8,9 @@ import type {
   User,
 } from '../types/api';
 
-const BASE_URL = '/api';
+// Locally the Vite proxy serves /api. In production (Vercel) the API lives on
+// another host (Render), set at build time, e.g. https://my-api.onrender.com/api
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '/api').replace(/\/+$/, '');
 const REFRESH_KEY = 'support.refreshToken';
 
 /** Error with the backend's stable code, so screens can react to specific cases. */

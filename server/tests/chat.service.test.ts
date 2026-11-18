@@ -26,6 +26,8 @@ vi.mock('../src/config/env.js', () => ({
     ollamaChatModel: 'configured-test-model',
     ollamaTimeoutMs: 30_000,
     ollamaChatTimeoutMs: 120_000,
+    chatProvider: 'ollama',
+    chatModel: 'configured-test-model',
     chatMinSimilarity: 0.4,
   },
 }));
@@ -200,7 +202,7 @@ describe('answerCustomerQuestion', () => {
       message: 'Could not generate a chat response.',
     });
     expect(consoleError).toHaveBeenCalledWith(
-      '[chat] Ollama chat generation failed using model "configured-test-model": Ollama chat request failed with HTTP 500',
+      '[chat] ollama chat generation failed using model "configured-test-model": Ollama chat request failed with HTTP 500',
     );
   });
 
