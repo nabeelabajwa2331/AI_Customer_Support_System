@@ -7,6 +7,7 @@ import { Alert } from '../components/Feedback';
 import { GoogleSignIn } from '../components/GoogleSignIn';
 import { Spinner } from '../components/Spinner';
 import { ApiError, api } from '../lib/api';
+import { homePathFor } from '../lib/routes';
 import { AuthShell } from './LoginPage';
 
 // Mirrors server/src/schemas/auth.schemas.ts so most mistakes are caught before a request.
@@ -29,15 +30,15 @@ export function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to={homePathFor(user.role)} replace />;
 
   // Google sign-up creates a CUSTOMER account and signs in immediately.
   async function handleGoogle(credential: string) {
     setError(null);
     setSubmitting(true);
     try {
-      await signInWithGoogle(credential);
-      navigate('/', { replace: true });
+      const signedIn = await signInWithGoogle(credential);
+      navigate(homePathFor(signedIn.role), { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Google sign-up failed. Please try again.');
     } finally {

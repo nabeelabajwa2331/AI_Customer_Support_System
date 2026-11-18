@@ -44,6 +44,38 @@ function renderAt(path: string) {
   );
 }
 
+describe('landing page', () => {
+  it('shows the intro page to visitors with sign-up and sign-in calls to action', async () => {
+    mockBackend(null);
+    renderAt('/');
+
+    expect(screen.getByRole('heading', { level: 1, name: /Answers your customers can trust/ })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /Get started free/ })[0]).toHaveAttribute('href', '/register');
+    expect(screen.getAllByRole('link', { name: 'Sign in' })[0]).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('heading', { name: /three steps/ })).toBeInTheDocument();
+  });
+
+  it('offers a signed-in staff member a link straight to the dashboard', async () => {
+    mockBackend('ADMIN');
+    renderAt('/');
+
+    const links = await screen.findAllByRole('link', { name: /Open dashboard/ });
+    expect(links[0]).toHaveAttribute('href', '/overview');
+  });
+
+  it('opens and closes FAQ answers', async () => {
+    mockBackend(null);
+    renderAt('/');
+
+    const question = screen.getByRole('button', { name: /Can the assistant process refunds/ });
+    expect(question).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(question);
+    expect(question).toHaveAttribute('aria-expanded', 'true');
+    // Regression: re-rendering className must not hide an already revealed item.
+    expect(question.closest('.faq-item')).toHaveAttribute('data-visible');
+  });
+});
+
 describe('routing and roles', () => {
   it('sends a signed-out visitor to the sign-in page', async () => {
     mockBackend(null);

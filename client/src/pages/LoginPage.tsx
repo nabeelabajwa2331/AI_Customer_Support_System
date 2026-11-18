@@ -3,7 +3,8 @@ import { useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
-import { STAFF_ROLES, useAuth } from '../auth/AuthContext';
+import { useAuth } from '../auth/AuthContext';
+import { homePathFor } from '../lib/routes';
 import { Alert } from '../components/Feedback';
 import { GoogleSignIn } from '../components/GoogleSignIn';
 import { Spinner } from '../components/Spinner';
@@ -49,11 +50,10 @@ export function LoginPage() {
   const registered = (location.state as { registered?: boolean } | null)?.registered;
   const from = (location.state as { from?: string } | null)?.from;
 
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to={homePathFor(user.role)} replace />;
 
   function goHome(signedIn: User) {
-    const home = STAFF_ROLES.includes(signedIn.role) ? '/overview' : '/assistant';
-    navigate(from && from !== '/login' ? from : home, { replace: true });
+    navigate(from && from !== '/login' ? from : homePathFor(signedIn.role), { replace: true });
   }
 
   async function handleGoogle(credential: string) {

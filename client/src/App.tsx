@@ -8,16 +8,19 @@ import { EmptyState } from './components/Feedback';
 import { Layout } from './components/Layout';
 import { ToastProvider } from './components/Toast';
 import { AssistantPage } from './pages/AssistantPage';
+import { homePathFor } from './lib/routes';
 import { KnowledgePage } from './pages/KnowledgePage';
+import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { OverviewPage } from './pages/OverviewPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ThemeProvider } from './theme/ThemeContext';
 
+/** "/app" goes to the right workspace for the signed-in role. */
 function HomeRedirect() {
-  const { hasRole } = useAuth();
-  return <Navigate to={hasRole(...STAFF_ROLES) ? '/overview' : '/assistant'} replace />;
+  const { user } = useAuth();
+  return <Navigate to={user ? homePathFor(user.role) : '/login'} replace />;
 }
 
 function NotFound() {
@@ -26,8 +29,8 @@ function NotFound() {
       icon={Compass}
       title="Page not found"
       action={
-        <Link to="/" className="button button-secondary">
-          Go home
+        <Link to="/app" className="button button-secondary">
+          Go to dashboard
         </Link>
       }
     >
@@ -39,6 +42,7 @@ function NotFound() {
 export function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route
@@ -48,7 +52,7 @@ export function AppRoutes() {
           </RequireAuth>
         }
       >
-        <Route index element={<HomeRedirect />} />
+        <Route path="app" element={<HomeRedirect />} />
         <Route path="assistant" element={<AssistantPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route
