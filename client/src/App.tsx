@@ -11,6 +11,7 @@ import { AssistantPage } from './pages/AssistantPage';
 import { homePathFor } from './lib/routes';
 import { KnowledgePage } from './pages/KnowledgePage';
 import { LandingPage } from './pages/LandingPage';
+import { LegalPage } from './pages/LegalPage';
 import { LoginPage } from './pages/LoginPage';
 import { OverviewPage } from './pages/OverviewPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -46,6 +47,8 @@ export function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/privacy" element={<LegalPage kind="privacy" />} />
+      <Route path="/terms" element={<LegalPage kind="terms" />} />
       <Route
         element={
           <RequireAuth>

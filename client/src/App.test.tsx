@@ -63,6 +63,22 @@ describe('landing page', () => {
     expect(links[0]).toHaveAttribute('href', '/overview');
   });
 
+  it('links to public Privacy Policy and Terms pages that need no sign-in', async () => {
+    mockBackend(null);
+    renderAt('/');
+    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/privacy');
+    expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/terms');
+  });
+
+  it.each([
+    ['/privacy', 'Privacy Policy'],
+    ['/terms', 'Terms of Service'],
+  ])('renders %s for signed-out visitors', async (path, heading) => {
+    mockBackend(null);
+    renderAt(path);
+    expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
+  });
+
   it('opens and closes FAQ answers', async () => {
     mockBackend(null);
     renderAt('/');

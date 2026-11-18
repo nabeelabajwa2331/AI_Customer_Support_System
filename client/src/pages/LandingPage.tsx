@@ -500,6 +500,10 @@ export function LandingPage() {
             Support Desk
           </span>
           <span>AI customer support grounded in your own documents.</span>
+          <nav className="l-footer-links" aria-label="Legal">
+            <Link to="/privacy">Privacy Policy</Link>
+            <Link to="/terms">Terms of Service</Link>
+          </nav>
         </div>
       </footer>
     </div>

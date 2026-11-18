@@ -1051,6 +1051,19 @@ html:has(.landing) {
   gap: 12px;
 }
 
+.l-footer-links {
+  display: flex;
+  gap: 18px;
+}
+
+.l-footer-links a {
+  color: var(--text-muted);
+}
+
+.l-footer-links a:hover {
+  color: var(--accent-text);
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1000px) {
   .l-hero-inner {
